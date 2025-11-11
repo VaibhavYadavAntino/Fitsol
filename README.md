@@ -1,434 +1,943 @@
-# FitSol ESG Co-Pilot - Technical Documentation
+# FitSol ESG Co-Pilot - Complete Technical Documentation
 
-**Client-Facing Technical Documentation for Carbon Emissions Experts**
+## Table of Contents
 
----
-
-## 📋 Table of Contents
-
-1. [Executive Summary](#executive-summary)
-2. [What We Built](#what-we-built)
-3. [System Architecture](#system-architecture)
-4. [How It Works - Agentic Architecture](#how-it-works---agentic-architecture)
-5. [The Three AI Agents](#the-three-ai-agents)
-6. [Sample Queries & Use Cases](#sample-queries--use-cases)
-7. [Sample Data Files](#sample-data-files)
-8. [How to Run the Application](#how-to-run-the-application)
-9. [CI/CD Pipeline](#cicd-pipeline)
-10. [Technical Implementation Details](#technical-implementation-details)
-
----
-
-## Executive Summary
-
-**FitSol ESG Co-Pilot** is an AI-powered platform that helps organizations calculate, benchmark, and plan their carbon emissions reduction strategies. The system uses three specialized AI agents that work together to provide comprehensive ESG intelligence:
-
-1. **Carbon Accounting Agent** - Calculates carbon footprints using verified emission factors
-2. **Benchmarking Agent** - Compares your company's ESG metrics against industry peers
-3. **Net Zero Planner** - Creates science-based pathways to achieve net-zero emissions
-
-The platform intelligently understands natural language queries, extracts data from uploaded files (CSV, PDF, Excel), and performs real mathematical calculations (not AI-generated numbers) using industry-standard formulas and verified databases.
-
----
-
-## What We Built
-
-### Core Capabilities
-
-**1. Intelligent Query Understanding**
-- The system understands natural language questions about carbon emissions
-- Example: "Calculate carbon footprint for 1000 liters of diesel in India"
-- Automatically extracts: activity type, amount, region, and other parameters
-
-**2. Real Mathematical Calculations**
-- Uses **GHG Protocol Standard** formulas
-- Accesses verified emission factor databases (IPCC, IEA, EPA)
-- Performs actual calculations, not AI-generated estimates
-- Provides step-by-step calculation proofs
-
-**3. File-Based Intelligence**
-- Upload CSV/Excel files with company ESG data
-- System automatically extracts companies, metrics, sectors, regions
-- Enables bulk comparisons and benchmarking across multiple companies
-
-**4. Industry Benchmarking**
-- Compares your metrics against industry peers
-- Calculates percentile rankings using statistical methods
-- Identifies performance gaps and improvement opportunities
-
-**5. Science-Based Net Zero Planning**
-- Creates SBTi (Science Based Targets initiative) aligned pathways
-- Supports 1.5°C and well-below 2°C scenarios
-- Recommends decarbonization initiatives with impact scoring
-
-### Technology Stack
-
-- **Frontend**: React with TypeScript
-- **Backend**: FastAPI (Python)
-- **AI/LLM**: Google Gemini 2.0/2.5 Flash
-- **Vector Database**: ChromaDB (for document search)
-- **Databases**: 
-  - MongoDB (results storage)
-  - SQLite (emission factors and benchmarks)
-- **Deployment**: Docker containers on AWS EC2
+1. [System Architecture](#system-architecture)
+2. [Application Flow](#application-flow)
+3. [Agent Workflows](#agent-workflows)
+   - [Carbon Accounting Agent](#carbon-accounting-agent)
+   - [Benchmarking Agent](#benchmarking-agent)
+   - [Net-Zero Planner Agent](#net-zero-planner-agent)
+4. [Hybrid AI Architecture](#hybrid-ai-architecture)
+5. [Data Flow & Storage](#data-flow--storage)
+6. [Tool Router System](#tool-router-system)
+7. [Calculation Engines](#calculation-engines)
+8. [Visualization System](#visualization-system)
+9. [Workflow Logging](#workflow-logging)
 
 ---
 
 ## System Architecture
 
-### High-Level Overview
+### High-Level Architecture
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#ffffff', 'primaryTextColor':'#000000', 'primaryBorderColor':'#000000', 'lineColor':'#000000', 'secondaryColor':'#f0f0f0', 'tertiaryColor':'#e0e0e0'}}}%%
 graph TB
-    subgraph "User Interface"
-        UI[React Frontend<br/>User Interface]
+    subgraph "Frontend Layer"
+        UI[React UI]
+        Chat[Chat Interface]
+        Dashboard[Admin Dashboard]
+        Viz[Visualization Components]
     end
     
-    subgraph "Backend Services"
-        API[FastAPI Backend<br/>REST API]
+    subgraph "API Layer"
+        FastAPI[FastAPI Backend]
+        Routes[API Routes]
+        SSE[Server-Sent Events]
     end
     
-    subgraph "AI Processing"
-        L1[Layer 1: Query Classification<br/>Understands user intent]
-        L2[Layer 2: RAG + Tool Router<br/>Searches documents & routes to agents]
+    subgraph "AI Processing Layer"
+        Layer1[Layer 1: Query Classification]
+        Layer2[Layer 2: RAG + Tools]
+        Router[Tool Router]
+        HybridRetrieval[Hybrid Retrieval System]
     end
     
-    subgraph "AI Agents"
-        CA[Carbon Accounting Agent<br/>Calculates emissions]
-        BA[Benchmarking Agent<br/>Compares performance]
-        NZ[Net Zero Planner<br/>Creates pathways]
+    subgraph "Agent Layer"
+        Carbon[Carbon Accounting Agent]
+        Bench[Benchmarking Agent]
+        NetZero[Net-Zero Planner Agent]
+        Chart[Chart Generator]
     end
     
-    subgraph "Calculation Engines"
-        CCE[Carbon Calculation Engine<br/>GHG Protocol formulas]
-        BCE[Benchmarking Engine<br/>Statistical calculations]
-        SBTI[SBTi Pathway Calculator<br/>Science-based targets]
+    subgraph "Calculation Layer"
+        CarbonCalc[Carbon Calculation Engine]
+        BenchCalc[Benchmarking Engine]
+        NetZeroCalc[SBTi Pathway Calculator]
+        InitiativeScorer[Initiative Scorer]
     end
     
-    subgraph "Data Sources"
-        SQL[(SQLite<br/>Emission Factors & Benchmarks)]
-        MDB[(MongoDB<br/>Results Storage)]
-        VS[(Vector Store<br/>Document Search)]
+    subgraph "Data Storage Layer"
+        MongoDB[(MongoDB)]
+        FAISS[(FAISS Vector Store)]
+        SQLite[(SQLite Databases)]
     end
     
-    UI -->|User Queries| API
-    API -->|Process Query| L1
-    L1 -->|Enhanced Query| L2
-    L2 -->|Route to Agent| CA
-    L2 -->|Route to Agent| BA
-    L2 -->|Route to Agent| NZ
+    UI --> FastAPI
+    Chat --> FastAPI
+    Dashboard --> FastAPI
+    Viz --> FastAPI
     
-    CA -->|Perform Calculation| CCE
-    BA -->|Perform Calculation| BCE
-    NZ -->|Calculate Pathway| SBTI
+    FastAPI --> Routes
+    Routes --> Layer1
+    Layer1 --> Layer2
+    Layer2 --> HybridRetrieval
+    Layer2 --> Router
     
-    CCE -->|Query Data| SQL
-    BCE -->|Query Data| SQL
-    SBTI -->|Query Data| SQL
+    Router --> Carbon
+    Router --> Bench
+    Router --> NetZero
+    Router --> Chart
     
-    CA -->|Store Results| MDB
-    BA -->|Store Results| MDB
-    NZ -->|Store Results| MDB
+    Carbon --> CarbonCalc
+    Bench --> BenchCalc
+    NetZero --> NetZeroCalc
+    NetZero --> InitiativeScorer
     
-    L2 -->|Search Documents| VS
+    CarbonCalc --> SQLite
+    BenchCalc --> SQLite
+    NetZeroCalc --> MongoDB
     
-    style CA fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    style BA fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    style NZ fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
-    style L1 fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    style L2 fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    HybridRetrieval --> FAISS
+    HybridRetrieval --> SQLite
+    HybridRetrieval --> MongoDB
+    Layer2 --> MongoDB
+    Carbon --> MongoDB
+    Bench --> MongoDB
+    NetZero --> MongoDB
+    
+    FastAPI --> SSE
+    SSE --> UI
 ```
 
-**Key Components Explained:**
+### Component Interaction
 
-1. **User Interface (React Frontend)**: Where users interact with the system
-2. **Backend API (FastAPI)**: Handles all requests and coordinates processing
-3. **Layer 1 (Query Classification)**: Understands if the query is a greeting, needs clarification, or should be processed
-4. **Layer 2 (RAG + Tool Router)**: 
-   - Searches uploaded documents for relevant information
-   - Routes queries to the appropriate AI agent
-5. **AI Agents**: Specialized agents that handle specific tasks
-6. **Calculation Engines**: Perform actual mathematical calculations using verified formulas
-7. **Data Sources**: Store emission factors, benchmarks, results, and documents
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant Layer1
+    participant Layer2
+    participant HybridRetrieval
+    participant Router
+    participant Agent
+    participant CalcEngine
+    participant DB
+    
+    User->>Frontend: Submit Query
+    Frontend->>API: POST /chat/chat-with-llm
+    API->>Layer1: Classify Query
+    
+    alt Clarification Needed
+        Layer1->>API: Clarification Required
+        API->>Frontend: Show Clarification UI
+        Frontend->>User: Display Questions
+        User->>Frontend: Provide Details
+        Frontend->>API: Enhanced Query
+    end
+    
+    API->>Layer2: Process Enhanced Query
+    Layer2->>HybridRetrieval: Retrieve Context
+    HybridRetrieval->>DB: Query SQL/Vector/MongoDB
+    DB->>HybridRetrieval: Return Context
+    HybridRetrieval->>Layer2: Combined Context
+    
+    Layer2->>Router: Check Tool Requirements
+    Router->>Agent: Execute Agent
+    
+    Agent->>CalcEngine: Perform Calculations
+    CalcEngine->>DB: Lookup Data
+    DB->>CalcEngine: Return Data
+    CalcEngine->>Agent: Calculation Results
+    
+    Agent->>DB: Store Results
+    Agent->>Router: Tool Output
+    Router->>Layer2: Tool Results
+    Layer2->>Layer2: Generate Response
+    Layer2->>API: Stream Response
+    API->>Frontend: SSE Stream
+    Frontend->>User: Display Response
+```
 
 ---
 
-## How It Works - Agentic Architecture
+## Application Flow
 
 ### Complete Query Processing Flow
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#ffffff', 'primaryTextColor':'#000000', 'primaryBorderColor':'#000000', 'lineColor':'#000000', 'secondaryColor':'#f0f0f0', 'tertiaryColor':'#e0e0e0'}}}%%
+graph TB
+    Start([User Submits Query]) --> FewShot{Few-Shot Match?}
+    FewShot -->|Yes| Instant[Instant Response]
+    FewShot -->|No| Layer1[Layer 1: Classification]
+    
+    Layer1 --> Check1{Query Type?}
+    Check1 -->|Greeting| Greeting[Direct Response]
+    Check1 -->|Memory| Memory[Retrieve from History]
+    Check1 -->|Clarification| Clarify[Show Clarification UI]
+    Check1 -->|Enhanced| Layer2[Layer 2: RAG Processing]
+    
+    Clarify --> UserInput[User Provides Details]
+    UserInput --> Layer2
+    
+    Layer2 --> HybridRetrieval[Hybrid Retrieval]
+    HybridRetrieval --> SQLDB[(SQL Database)]
+    HybridRetrieval --> VectorDB[(Vector Database)]
+    HybridRetrieval --> Internet[Internet Search]
+    
+    SQLDB --> Context[Combined Context]
+    VectorDB --> Context
+    Internet --> Context
+    
+    Context --> ToolRouter{Tool Needed?}
+    ToolRouter -->|No| DirectRAG[Direct RAG Response]
+    ToolRouter -->|Yes| SelectTool{Which Tool?}
+    
+    SelectTool -->|Carbon| CarbonAgent[Carbon Accounting Agent]
+    SelectTool -->|Benchmark| BenchAgent[Benchmarking Agent]
+    SelectTool -->|Net-Zero| NetZeroAgent[Net-Zero Planner Agent]
+    SelectTool -->|Chart| ChartGen[Chart Generator]
+    
+    CarbonAgent --> CarbonCalc[Calculation Engine]
+    BenchAgent --> BenchCalc[Benchmarking Engine]
+    NetZeroAgent --> NetZeroCalc[SBTi Calculator]
+    
+    CarbonCalc --> CarbonResult[Results]
+    BenchCalc --> BenchResult[Results]
+    NetZeroCalc --> NetZeroResult[Results]
+    
+    CarbonResult --> Viz[Visualization]
+    BenchResult --> Viz
+    NetZeroResult --> Viz
+    
+    DirectRAG --> Combine[Combine All Contexts]
+    CarbonResult --> Combine
+    BenchResult --> Combine
+    NetZeroResult --> Combine
+    ChartGen --> Combine
+    Viz --> Combine
+    
+    Combine --> Layer2Gen[Layer 2: Generate Response]
+    Layer2Gen --> Citations[Add Citations]
+    Citations --> Stream[Stream to Frontend]
+    
+    Greeting --> Stream
+    Memory --> Stream
+    Instant --> Stream
+    
+    Stream --> Display[Display to User]
+    Display --> End([Complete])
+```
+
+---
+
+## Agent Workflows
+
+### Carbon Accounting Agent
+
+#### Complete Workflow
+
+```mermaid
 graph TD
-    START([User Submits Query]) --> CLASSIFY{Query Type?}
+    Start([Query Received]) --> Log1[Log: QUERY_RECEIVED]
+    Log1 --> Extract[Data Extraction]
     
-    CLASSIFY -->|Simple Greeting| GREET[Direct Response]
-    CLASSIFY -->|Can Answer from Memory| MEMORY[Answer from History]
-    CLASSIFY -->|Needs More Info| CLARIFY[Ask Clarification Questions]
-    CLASSIFY -->|Complex Query| PROCESS[Process Query]
+    Extract --> Regex[Regex Extraction]
+    Regex --> LLM{Regex Success?}
+    LLM -->|Yes| Extracted[Extracted Data]
+    LLM -->|No| LLMExtract[LLM Extraction]
+    LLMExtract --> Extracted
     
-    CLARIFY --> USER_INPUT[User Provides Info]
-    USER_INPUT --> PROCESS
+    Extracted --> Log2[Log: CARBON_DATA_EXTRACTION]
+    Log2 --> ClarifyCheck{Clarification Needed?}
     
-    PROCESS --> FEW_SHOT{Pre-defined Answer?}
-    FEW_SHOT -->|Yes| INSTANT[Instant Response]
-    FEW_SHOT -->|No| SEARCH[Search Documents]
+    ClarifyCheck -->|Yes| GatherSuggestions[Gather Suggestions]
+    GatherSuggestions --> DBLookup[Database Lookup]
+    DBLookup --> KBSearch[Knowledge Base Search]
+    KBSearch --> InternetSearch[Internet Search]
     
-    SEARCH --> ROUTE{Which Agent?}
+    InternetSearch --> PreCalc[Pre-Calculation Disclosure]
+    PreCalc --> Log3[Log: CARBON_CLARIFICATION_GENERATED]
+    Log3 --> ReturnClarify[Return Clarification]
     
-    ROUTE -->|Carbon Calculation| CARBON[Carbon Accounting Agent]
-    ROUTE -->|Benchmarking| BENCH[Benchmarking Agent]
-    ROUTE -->|Net Zero Planning| NETZERO[Net Zero Planner]
-    ROUTE -->|General Question| RAG[Direct RAG Response]
+    ClarifyCheck -->|No| Normalize[Normalize Activity Types]
+    Normalize --> EmissionFactor[Emission Factor Lookup]
+    EmissionFactor --> Log4[Log: CARBON_EMISSION_FACTOR_LOOKUP]
     
-    CARBON --> EXTRACT1[Extract: Activity, Amount, Region]
-    BENCH --> EXTRACT2[Extract: Company, Metric, Value, Sector]
-    NETZERO --> EXTRACT3[Extract: Current Emissions, Target Year]
+    Log4 --> CalcStart[Start Calculation]
+    CalcStart --> Log5[Log: CARBON_CALCULATION_START]
     
-    EXTRACT1 --> CHECK1{Data Complete?}
-    EXTRACT2 --> CHECK2{Data Complete?}
-    EXTRACT3 --> CHECK3{Data Complete?}
+    Log5 --> ScopeCheck{Scope Type?}
+    ScopeCheck -->|Scope 1| Scope1[Calculate Scope 1]
+    ScopeCheck -->|Scope 2| Scope2[Calculate Scope 2]
+    ScopeCheck -->|Scope 3| Scope3[Calculate Scope 3]
+    ScopeCheck -->|Total| Total[Calculate Total]
     
-    CHECK1 -->|No| CLARIFY
-    CHECK2 -->|No| CLARIFY
-    CHECK3 -->|No| CLARIFY
+    Scope1 --> Log6[Log: CARBON_CALCULATION_SCOPE1]
+    Scope2 --> Log7[Log: CARBON_CALCULATION_SCOPE2]
+    Scope3 --> Log8[Log: CARBON_CALCULATION_SCOPE3]
+    Total --> Log9[Log: CARBON_CALCULATION_TOTAL]
     
-    CHECK1 -->|Yes| CALC1[Calculate Emissions]
-    CHECK2 -->|Yes| CALC2[Calculate Benchmarks]
-    CHECK3 -->|Yes| CALC3[Calculate Pathway]
+    Log6 --> Store[Store Results]
+    Log7 --> Store
+    Log8 --> Store
+    Log9 --> Store
     
-    CALC1 --> RESULT1[Emission Results + Charts]
-    CALC2 --> RESULT2[Benchmark Results + Charts]
-    CALC3 --> RESULT3[Net Zero Plan + Charts]
+    Store --> Log10[Log: CARBON_RESULT_STORED]
+    Log10 --> GenerateProof[Generate Calculation Proof]
+    GenerateProof --> Viz[Generate Visualizations]
+    Viz --> Log11[Log: CARBON_VISUALIZATION_GENERATED]
     
-    RESULT1 --> RESPONSE[Generate Natural Language Response]
-    RESULT2 --> RESPONSE
-    RESULT3 --> RESPONSE
-    RAG --> RESPONSE
-    INSTANT --> RESPONSE
-    MEMORY --> RESPONSE
-    GREET --> RESPONSE
+    Log11 --> GenerateResponse[Generate Explanation]
+    GenerateResponse --> Log12[Log: CARBON_RESPONSE_GENERATED]
+    Log12 --> Log13[Log: WORKFLOW_COMPLETE]
+    Log13 --> End([Return Response])
     
-    RESPONSE --> STREAM[Stream Response to User]
-    
-    style CARBON fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    style BENCH fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    style NETZERO fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
-    style ROUTE fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    style RESPONSE fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    ReturnClarify --> End
 ```
 
-**Flow Explanation:**
+#### Detailed Step Descriptions
 
-1. **User submits a query** (e.g., "Calculate carbon footprint for 1000 liters of diesel")
-2. **System classifies the query** - Is it simple? Does it need clarification? Should it be processed?
-3. **If processing needed:**
-   - Checks for pre-defined answers (few-shot matching)
-   - Searches uploaded documents for context
-   - Routes to appropriate AI agent
-4. **Agent extracts structured data** from the query
-5. **If data incomplete**, asks clarification questions
-6. **If data complete**, performs actual calculations
-7. **Generates response** with results, charts, and explanations
-8. **Streams response** back to user in real-time
+**1. Query Reception & Logging**
+- User query received
+- Workflow session started
+- Query logged with metadata (context, memory presence)
+
+**2. Data Extraction**
+- **Regex Extraction**: Pattern matching for common formats
+  - Activity types: "diesel", "electricity", "waste", etc.
+  - Quantities: "1000 liters", "5000 kWh", "500 kg"
+  - Locations: "India", "USA", "Brazil"
+- **LLM Extraction**: Fallback for complex queries
+  - Uses structured schema extraction
+  - Handles ambiguous inputs
+
+**3. Clarification Check**
+- Analyzes extracted data completeness
+- Checks for required fields:
+  - Region (country) - **REQUIRED**
+  - At least one activity with amount - **REQUIRED**
+  - Company name, time period - **OPTIONAL**
+
+**4. Pre-Calculation Data Selection (Cross-Question)**
+- **Database Lookup**: Searches SQLite for emission factors
+- **Knowledge Base Search**: Searches vector store for relevant data
+- **Internet Search**: Searches web for missing emission factors
+- **Disclosure Generation**: Shows all available options to user
+  - Database options with sources (IPCC, IEA, EPA)
+  - Internet options with confidence scores
+  - Allows user to select or proceed automatically
+
+**5. Emission Factor Lookup**
+- Normalizes activity types (e.g., "lpg_consumption" → "lpg_combustion")
+- Retrieves emission factors from database
+- Applies region-specific factors
+- Handles temporal grid factors for electricity
+
+**6. Calculation Execution**
+- **Scope 1**: Direct emissions from fuel combustion
+  - Formula: `Emissions = Activity × Emission Factor × GWP`
+  - Handles multiple fuel types
+  - Applies IPCC AR6 GWP values
+- **Scope 2**: Indirect emissions from purchased electricity
+  - Location-based: Uses grid emission factors
+  - Market-based: Uses contractual instruments (if available)
+- **Scope 3**: Value chain emissions
+  - Activity-based, spend-based, supplier-specific methods
+  - Category-specific calculations
+- **Total**: Sums all scopes
+
+**7. Result Storage**
+- Stores calculation results in MongoDB
+- Includes metadata: timestamp, query, extracted data, results
+- Enables trend analysis and historical tracking
+
+**8. Visualization Generation**
+- **Pie Chart**: Scope breakdown (Scope 1, 2, 3)
+- **Bar Chart**: Emissions by activity type
+- **Timeline Chart**: Historical trends (if available)
+- Charts embedded as base64 images in response
+
+**9. Response Generation**
+- **Calculation Proof**: Step-by-step formulas and intermediate values
+- **Action Points**: What was accomplished
+- **Data Sources**: Verified sources used
+- **Workflow Timeline**: Visual representation of steps taken
+- **Recommendations**: Actionable insights
+
+#### Example Calculation Flow
+
+```
+Query: "Calculate carbon footprint for 1000 liters diesel in India"
+
+Step 1: Extract Data
+  - Activity: diesel_combustion
+  - Amount: 1000 liters
+  - Region: India
+
+Step 2: Lookup Emission Factor
+  - Database: IPCC 2006 Guidelines
+  - Factor: 2.68 kg CO₂ equivalent/liter
+  - Source: Verified
+
+Step 3: Calculate
+  - Emissions = 1000 L × 2.68 kg CO₂ equivalent/L
+  - Emissions = 2,680 kg CO₂ equivalent
+  - Emissions = 2.68 tonnes CO₂ equivalent
+
+Step 4: Generate Proof
+  - Formula: E = A × EF × GWP
+  - A = 1000 L
+  - EF = 2.68 kg CO₂ equivalent/L
+  - GWP = 1 (CO₂)
+  - E = 2,680 kg CO₂ equivalent
+
+Step 5: Store & Visualize
+  - Store in MongoDB
+  - Generate pie chart (Scope 1: 2.68 tonnes)
+  - Generate bar chart (Diesel: 2.68 tonnes)
+```
 
 ---
 
-## The Three AI Agents
+### Benchmarking Agent
 
-### 1. Carbon Accounting Agent
+#### Complete Workflow
 
-**Purpose**: Calculate carbon footprints for various activities (fuel consumption, electricity, waste, etc.)
-
-**How It Works**:
-1. Extracts activity type, amount, and region from your query
-2. Looks up verified emission factors from databases (IPCC, IEA, EPA)
-3. Performs calculations using GHG Protocol Standard formulas
-4. Generates detailed results with calculation proofs
-
-**Key Features**:
-- Supports Scope 1, 2, and 3 emissions
-- Handles multiple activities simultaneously
-- Shows emission factor sources and confidence levels
-- Generates visualizations (pie charts, bar charts)
-- Stores results for tracking over time
-
-**Calculation Example**:
+```mermaid
+graph TD
+    Start([Query Received]) --> Log1[Log: QUERY_RECEIVED]
+    Log1 --> FileCheck{File Context Available?}
+    
+    FileCheck -->|Yes| FileOrch[File-Based Orchestrator]
+    FileOrch --> Log2[Log: BENCH_FILE_ORCHESTRATOR]
+    Log2 --> ExtractFromFiles[Extract from Files]
+    
+    FileCheck -->|No| InitialExtract[Initial Data Extraction]
+    InitialExtract --> Normalize[Normalize Data]
+    Normalize --> Log3[Log: BENCH_DATA_EXTRACTION]
+    
+    ExtractFromFiles --> Validate[Validate Extraction]
+    Log3 --> Validate
+    
+    Validate --> ClarifyCheck{Clarification Needed?}
+    
+    ClarifyCheck -->|Yes| GatherSuggestions[Gather Suggestions]
+    GatherSuggestions --> DBLookup[Database Lookup]
+    DBLookup --> KBSearch[Knowledge Base Search]
+    KBSearch --> InternetSearch[Internet Search]
+    
+    InternetSearch --> PreCalc[Pre-Calculation Disclosure]
+    PreCalc --> Log4[Log: BENCH_CLARIFICATION_GENERATED]
+    Log4 --> ReturnClarify[Return Clarification]
+    
+    ClarifyCheck -->|No| NormalizeMetric[Normalize Metric Name]
+    NormalizeMetric --> NormalizeSector[Normalize Sector]
+    
+    NormalizeSector --> PeerGroup[Identify Peer Group]
+    PeerGroup --> Log5[Log: BENCH_PEER_GROUP_IDENTIFICATION]
+    
+    Log5 --> BenchmarkLookup[Lookup Benchmark Data]
+    BenchmarkLookup --> Log6[Log: BENCH_BENCHMARK_LOOKUP]
+    
+    Log6 --> BenchmarkType{Benchmark Type?}
+    BenchmarkType -->|Single Metric| Percentile[Calculate Percentile Rank]
+    BenchmarkType -->|Gap Analysis| GapAnalysis[Calculate Gap Analysis]
+    BenchmarkType -->|Peer Comparison| PeerComp[Peer Comparison]
+    
+    Percentile --> Log7[Log: BENCH_PERCENTILE_CALCULATION]
+    GapAnalysis --> Log8[Log: BENCH_GAP_ANALYSIS]
+    PeerComp --> Log9[Log: BENCH_PEER_COMPARISON]
+    
+    Log7 --> Store[Store Results]
+    Log8 --> Store
+    Log9 --> Store
+    
+    Store --> Log10[Log: BENCH_RESULT_STORED]
+    Log10 --> GenerateProof[Generate Calculation Proof]
+    GenerateProof --> Viz[Generate Visualizations]
+    Viz --> Log11[Log: BENCH_VISUALIZATION_GENERATED]
+    
+    Log11 --> GenerateResponse[Generate Explanation]
+    GenerateResponse --> Log12[Log: BENCH_RESPONSE_GENERATED]
+    Log12 --> Log13[Log: WORKFLOW_COMPLETE]
+    Log13 --> End([Return Response])
+    
+    ReturnClarify --> End
 ```
-Input: "Calculate carbon footprint for 1000 liters of diesel in India"
-Process:
-  1. Extract: activity=diesel, amount=1000 liters, region=India
-  2. Lookup emission factor: 2.68 kg CO2e/liter (IPCC 2006)
-  3. Calculate: 1000 × 2.68 = 2,680 kg CO2e = 2.68 tonnes CO2e
-  4. Return: Detailed breakdown with proof
+
+#### Detailed Step Descriptions
+
+**1. Query Reception & File Context Check**
+- Checks if file-based context is available
+- If yes, uses File-Based Orchestrator to extract data from uploaded files
+- If no, proceeds with standard extraction
+
+**2. Data Extraction & Normalization**
+- **Initial Extraction**: LLM extracts structured data
+- **Normalization**:
+  - Metric names: "carbon emissions" → "carbon_emissions"
+  - Sectors: "Manufacturing" → "Manufacturing" (title case)
+  - Company names: Title case or uppercase for acronyms
+- **Validation**: Ensures required fields are present
+  - Company name - **REQUIRED**
+  - Metric name - **REQUIRED**
+  - Metric value - **REQUIRED**
+  - Sector - **REQUIRED**
+
+**3. Clarification Check**
+- Analyzes extracted data completeness
+- If missing required fields, generates clarification questions
+- Includes suggestions from database and knowledge base
+
+**4. Pre-Calculation Data Selection**
+- **Database Lookup**: Searches SQLite for benchmark data
+- **Knowledge Base Search**: Searches vector store
+- **Internet Search**: Searches web for company metric values
+- **Disclosure Generation**: Shows available benchmark options
+
+**5. Peer Group Identification**
+- Identifies peer group based on:
+  - Sector (primary)
+  - Region (optional)
+  - Geography (optional)
+  - Company size (if available)
+
+**6. Benchmark Lookup**
+- Searches benchmark database for:
+  - Metric name
+  - Sector
+  - Region/Geography (optional)
+  - Year (defaults to current if not specified)
+- **Fallback Logic**:
+  - Tries without region/geography
+  - Tries with different year
+  - Tries similar metrics
+  - Uses closest available benchmark
+
+**7. Calculation Execution**
+- **Percentile Rank Calculation**:
+  - Uses linear interpolation between percentiles
+  - Handles extrapolation for values outside range
+  - Formula: `Percentile = P_lower + (P_upper - P_lower) × (value - V_lower) / (V_upper - V_lower)`
+- **Gap Analysis**:
+  - Calculates gap to target percentile
+  - Provides reduction recommendations
+- **Peer Comparison**:
+  - Compares with peer group companies
+  - Calculates relative performance
+
+**8. Result Storage & Visualization**
+- Stores results in MongoDB
+- Generates visualizations:
+  - **Bar Chart**: Company vs. peers
+  - **Radar Chart**: Percentile distribution
+  - **Gap Chart**: Current vs. target
+
+**9. Response Generation**
+- **Percentile Ranking**: Shows where company ranks
+- **Gap Analysis**: Shows distance to targets
+- **Peer Comparison**: Shows relative performance
+- **Recommendations**: Actionable insights
+
+#### Example Benchmarking Flow
+
+```
+Query: "Benchmark TATA's carbon emissions of 50,000 tons CO₂ equivalent in Manufacturing sector"
+
+Step 1: Extract & Normalize
+  - Company: TATA
+  - Metric: carbon_emissions (normalized from "carbon emissions")
+  - Value: 50,000 tonnes CO₂ equivalent
+  - Sector: Manufacturing (normalized)
+
+Step 2: Lookup Benchmark
+  - Database: Manufacturing sector, carbon_emissions
+  - Percentiles:
+    - P25: 30,000 tonnes
+    - P50: 45,000 tonnes
+    - P75: 60,000 tonnes
+    - P90: 80,000 tonnes
+
+Step 3: Calculate Percentile Rank
+  - Value: 50,000 tonnes
+  - Between P50 (45,000) and P75 (60,000)
+  - Interpolation: P50 + (P75 - P50) × (50,000 - 45,000) / (60,000 - 45,000)
+  - Percentile Rank: 50 + (75 - 50) × 5,000 / 15,000 = 58.3%
+
+Step 4: Gap Analysis
+  - Target: 75th percentile (60,000 tonnes)
+  - Gap: 60,000 - 50,000 = 10,000 tonnes
+  - Reduction needed: 20%
+
+Step 5: Generate Response
+  - "TATA ranks at the 58.3rd percentile"
+  - "To reach 75th percentile, reduce by 10,000 tonnes (20%)"
 ```
 
-### 2. Benchmarking Agent
+---
 
-**Purpose**: Compare your company's ESG metrics against industry peers and benchmarks
+### Net-Zero Planner Agent
 
-**How It Works**:
-1. Extracts company name, metric, value, and sector from query or uploaded files
-2. Queries benchmark database for industry averages and percentiles
-3. Calculates percentile rank using statistical interpolation
-4. Performs gap analysis to identify improvement opportunities
+#### Complete Workflow
 
-**Key Features**:
-- Supports single metric, multi-metric, and peer comparison
-- Works with uploaded CSV/Excel files containing multiple companies
-- Calculates statistical percentiles (P10, P25, P50, P75, P90, P95)
-- Generates comparison charts (bar charts, radar charts)
-- Identifies best-in-class performers
-
-**Calculation Example**:
+```mermaid
+graph TD
+    Start([Query Received]) --> Log1[Log: QUERY_RECEIVED]
+    Log1 --> Extract[Data Extraction]
+    Extract --> Log2[Log: NETZERO_DATA_EXTRACTION]
+    
+    Log2 --> ClarifyCheck{Clarification Needed?}
+    ClarifyCheck -->|Yes| ReturnClarify[Return Clarification]
+    
+    ClarifyCheck -->|No| CheckEmissions{Emissions Available?}
+    CheckEmissions -->|No| FetchEmissions[Fetch from Carbon Agent]
+    FetchEmissions --> Log3[Log: NETZERO_EMISSIONS_FETCH]
+    
+    CheckEmissions -->|Yes| Validate[Validate Inputs]
+    Log3 --> Validate
+    
+    Validate --> SBTiCalc[SBTi Pathway Calculation]
+    SBTiCalc --> Log4[Log: NETZERO_SBTI_PATHWAY_CALCULATION]
+    
+    Log4 --> Scenario{Scenario Type?}
+    Scenario -->|1.5°C| Scenario15[1.5°C Scenario]
+    Scenario -->|Well-Below 2°C| Scenario2C[Well-Below 2°C Scenario]
+    
+    Scenario15 --> Log5[Log: NETZERO_15C_SCENARIO]
+    Scenario2C --> Log6[Log: NETZERO_WELL_BELOW_2C_SCENARIO]
+    
+    Log5 --> InitiativeScoring[Initiative Scoring]
+    Log6 --> InitiativeScoring
+    
+    InitiativeScoring --> Log7[Log: NETZERO_INITIATIVE_SCORING]
+    Log7 --> ImpactScoring[Impact Scoring]
+    ImpactScoring --> Log8[Log: NETZERO_IMPACT_SCORING]
+    Log8 --> CostScoring[Cost Scoring]
+    CostScoring --> Log9[Log: NETZERO_COST_SCORING]
+    Log9 --> FeasibilityScoring[Feasibility Scoring]
+    FeasibilityScoring --> Log10[Log: NETZERO_FEASIBILITY_SCORING]
+    
+    Log10 --> PathwayValidation[Pathway Validation]
+    PathwayValidation --> Log11[Log: NETZERO_PATHWAY_VALIDATION]
+    
+    Log11 --> Store[Store Plan]
+    Store --> Log12[Log: NETZERO_PLAN_STORED]
+    
+    Log12 --> GenerateResponse[Generate Explanation]
+    GenerateResponse --> Log13[Log: NETZERO_RESPONSE_GENERATED]
+    Log13 --> Log14[Log: WORKFLOW_COMPLETE]
+    Log14 --> End([Return Response])
+    
+    ReturnClarify --> End
 ```
-Input: "Compare TATA's carbon intensity of 0.15 tCO2e/revenue against technology sector in India"
-Process:
-  1. Extract: company=TATA, metric=carbon_intensity, value=0.15, sector=Technology, region=India
-  2. Query benchmarks: P25=0.12, P50=0.18, P75=0.25, P90=0.35
-  3. Calculate percentile rank: 0.15 falls between P25 and P50
-  4. Interpolate: ~42nd percentile
-  5. Return: "TATA performs better than 42% of technology companies in India"
-```
 
-### 3. Net Zero Planner
+#### Detailed Step Descriptions
 
-**Purpose**: Create science-based pathways to achieve net-zero emissions by 2050
+**1. Data Extraction**
+- Extracts structured data:
+  - Current emissions (tonnes CO₂ equivalent)
+  - Target year (default: 2050)
+  - Temperature scenario (1.5°C or well-below 2°C)
+  - Budget constraints (optional)
+  - Company information
 
-**How It Works**:
-1. Extracts current emissions, target year, and scenario preference
-2. Calculates SBTi-aligned reduction pathway (1.5°C or well-below 2°C)
-3. Scores and ranks decarbonization initiatives
-4. Generates year-by-year emission targets and recommendations
+**2. Emissions Fetching**
+- If emissions not provided, attempts to fetch from Carbon Accounting Agent
+- Uses conversation history to find previous calculations
+- Falls back to asking user if not found
 
-**Key Features**:
-- Supports SBTi 1.5°C and well-below 2°C scenarios
-- Calculates interim targets (2030, 2040, 2050)
-- Scores initiatives by impact, cost, and feasibility
-- Recommends top initiatives with multi-criteria analysis
+**3. SBTi Pathway Calculation**
+- **1.5°C Scenario**: Aligned with limiting warming to 1.5°C
+  - Requires 50% reduction by 2030
+  - Net-zero by 2050
+- **Well-Below 2°C Scenario**: Aligned with limiting warming to well-below 2°C
+  - Requires 30% reduction by 2030
+  - Net-zero by 2050
+- Calculates annual reduction targets
+- Generates milestone years
+
+**4. Initiative Scoring**
+- **Impact Scoring**: Reduction potential (tonnes CO₂ equivalent/year)
+- **Cost Scoring**: Implementation cost (CAPEX + OPEX)
+- **Feasibility Scoring**: Technical and organizational feasibility
+- **Multi-Criteria Scoring**: Weighted combination of all factors
+- Recommends top initiatives based on constraints
+
+**5. Pathway Validation**
 - Validates pathway compliance with SBTi standards
+- Checks milestone targets are achievable
+- Verifies initiative impacts sum to required reductions
 
-**Calculation Example**:
+**6. Plan Storage & Response**
+- Stores complete plan in MongoDB
+- Generates natural language explanation
+- Includes:
+  - Pathway summary
+  - Milestone breakdown
+  - Recommended initiatives
+  - Implementation timeline
+
+#### Example Net-Zero Planning Flow
+
 ```
-Input: "Create net zero plan for 10,000 tonnes CO2e, target 2050, 1.5°C scenario"
-Process:
-  1. Extract: current_emissions=10,000 tCO2e, target_year=2050, scenario=1.5°C
-  2. Calculate pathway: 7% annual reduction rate
-  3. Milestones:
-     - 2030: 5,000 tCO2e (50% reduction)
-     - 2040: 2,500 tCO2e (75% reduction)
-     - 2050: 0 tCO2e (net-zero)
-  4. Score initiatives: Renewable energy, Energy efficiency, etc.
-  5. Return: Complete plan with pathway and recommendations
+Query: "Create net-zero plan for 100,000 tons CO₂ equivalent with recommended initiatives"
+
+Step 1: Extract Data
+  - Current emissions: 100,000 tonnes CO₂ equivalent
+  - Target year: 2050 (default)
+  - Scenario: 1.5°C (default)
+
+Step 2: Calculate SBTi Pathway
+  - 2030 target: 50,000 tonnes (50% reduction)
+  - 2050 target: 0 tonnes (net-zero)
+  - Annual reduction: 3,333 tonnes/year
+
+Step 3: Score Initiatives
+  - Renewable Energy: Impact=20,000, Cost=Medium, Feasibility=High
+  - Energy Efficiency: Impact=15,000, Cost=Low, Feasibility=High
+  - Supply Chain: Impact=10,000, Cost=High, Feasibility=Medium
+  - Carbon Offsets: Impact=5,000, Cost=Low, Feasibility=High
+
+Step 4: Recommend Initiatives
+  - Top 3: Renewable Energy, Energy Efficiency, Carbon Offsets
+  - Total impact: 40,000 tonnes/year
+  - Exceeds required annual reduction
+
+Step 5: Generate Plan
+  - Pathway: 2024-2030: 50% reduction
+  - Initiatives: 3 recommended initiatives
+  - Timeline: Phased implementation
 ```
 
 ---
 
-## Sample Queries & Use Cases
+## Hybrid AI Architecture
 
-### Carbon Accounting Agent Queries
+### LLM vs. Python Functions
 
-**Basic Calculations:**
-- "Calculate carbon footprint for 1000 liters of diesel fuel in India"
-- "What is the carbon emissions for 50,000 kWh of electricity consumption in USA?"
-- "Calculate Scope 1 emissions for 500 kg of waste generation in Germany"
+The application uses a **hybrid approach** combining LLM intelligence with Python-based calculations:
 
-**Multiple Activities:**
-- "Calculate total carbon footprint: 2000 liters diesel, 30,000 kWh electricity, 1000 kg waste in India"
-- "What are the emissions for our fuel consumption (500L diesel) and electricity (20,000 kWh) in USA?"
+#### LLM Responsibilities
 
-**Scope-Specific:**
-- "Calculate Scope 2 emissions for 25,000 kWh grid electricity in India"
-- "What are our Scope 1 emissions from diesel (1000L) and gasoline (500L) consumption?"
+1. **Query Understanding**
+   - Natural language processing
+   - Intent classification
+   - Context extraction
 
-**With Company Context:**
-- "TATA, Q1 2024: Calculate carbon footprint for 1000 liters diesel in India"
-- "Calculate emissions for Reliance: 50,000 kWh electricity, 2000 liters diesel, India"
+2. **Data Extraction**
+   - Structured data extraction from queries
+   - Handles ambiguous inputs
+   - Regex fallback for reliability
 
-### Benchmarking Agent Queries
+3. **Clarification Generation**
+   - Natural language questions
+   - Context-aware suggestions
+   - User-friendly explanations
 
-**Single Metric Benchmarking:**
-- "Compare TATA's carbon intensity of 0.15 tCO2e/revenue against technology sector in India for 2024"
-- "How does our water usage of 1.7 million m³ compare to manufacturing sector peers in Asia?"
-- "Benchmark our renewable energy percentage of 38% against energy sector in India"
+4. **Response Formatting**
+   - Natural language explanations
+   - Professional formatting
+   - Citation integration
 
-**Peer Comparison:**
-- "Compare TATA's carbon emissions against Reliance, Infosys, and TCS in India"
-- "How do we compare to our competitors on carbon intensity, water usage, and renewable energy %?"
+#### Python Function Responsibilities
 
-**File-Based Benchmarking:**
-- Upload CSV file with multiple companies, then: "Compare all companies in the file on carbon emissions"
-- "Benchmark TATA against all other companies in the file for water usage"
+1. **Mathematical Calculations**
+   - GHG Protocol formulas
+   - Statistical calculations (percentiles, gaps)
+   - SBTi pathway modeling
 
-**Gap Analysis:**
-- "What percentile is our carbon intensity of 0.15 tCO2e/revenue in technology sector?"
-- "How far are we from the 75th percentile in water usage for manufacturing sector?"
+2. **Database Operations**
+   - SQLite queries for emission factors
+   - MongoDB storage and retrieval
+   - Vector database searches
 
-### Net Zero Planner Queries
+3. **Data Validation**
+   - Input validation
+   - Range checking
+   - Type validation
 
-**Basic Net Zero Planning:**
-- "Create net zero plan for 10,000 tonnes CO2e, target year 2050"
-- "What is the pathway to net zero for 50,000 tonnes CO2e by 2050 using 1.5°C scenario?"
+4. **Visualization Generation**
+   - Chart creation (matplotlib, plotly)
+   - Base64 encoding
+   - Chart metadata
 
-**With Scenario Selection:**
-- "Create net zero plan for 25,000 tonnes CO2e, 1.5°C scenario, target 2050"
-- "Plan net zero pathway for 100,000 tonnes CO2e using well-below 2°C scenario"
+### Hybrid Flow Example
 
-**With Historical Data:**
-- "Create net zero plan: current emissions 10,000 tCO2e, base year 2020 emissions 12,000 tCO2e, target 2050"
-- "Plan pathway to net zero: we emit 50,000 tonnes CO2e now, baseline was 60,000 in 2020"
-
-**Initiative-Focused:**
-- "What initiatives should we prioritize to achieve net zero by 2050 for 10,000 tonnes CO2e?"
-- "Recommend top 5 decarbonization initiatives for 25,000 tonnes CO2e reduction pathway"
-
-### File-Based Queries
-
-**After uploading a CSV file with company ESG data:**
-- "Compare all companies in the file on carbon emissions"
-- "Benchmark TATA against all others for water usage and energy consumption"
-- "What is the net zero pathway for TATA based on the file data?"
-- "Compare TATA, Reliance, and Infosys on all metrics in the file"
+```mermaid
+graph LR
+    A[User Query] --> B[LLM: Extract Data]
+    B --> C[Python: Validate]
+    C --> D[Python: Lookup Database]
+    D --> E[Python: Calculate]
+    E --> F[Python: Store Results]
+    F --> G[LLM: Format Response]
+    G --> H[User Response]
+```
 
 ---
 
-## Sample Data Files
+## Data Flow & Storage
 
-The system includes sample CSV files in the `sample_data/` folder that demonstrate the expected format:
+### Data Storage Architecture
 
-### Sample File: `indian_companies_esg_benchmark_2024.csv`
-
-**Format:**
-```csv
-Company Name,Sector,Region,Country,Year,Carbon Emissions (tonnes CO2e),Water Usage (m³),Energy Consumption (MWh),Waste Generated (tonnes),Renewable Energy %,Employee Count
-TATA,Manufacturing,Asia,India,2024,260000,1700000,1200000,26000,38,450000
-Reliance,Energy,Asia,India,2024,5200000,35000000,25000000,520000,15,250000
-Infosys,Technology,Asia,India,2024,125000,850000,450000,12500,65,350000
+```mermaid
+graph TB
+    subgraph "SQLite Databases"
+        CarbonDB[(Carbon Accounting DB)]
+        BenchDB[(Benchmarking DB)]
+    end
+    
+    subgraph "MongoDB Collections"
+        Calculations[Calculations]
+        Benchmarks[Benchmark Results]
+        Plans[Net-Zero Plans]
+        Chats[Chat History]
+        Metrics[Usage Metrics]
+    end
+    
+    subgraph "Vector Store"
+        FAISS[FAISS Index]
+        Embeddings[Document Embeddings]
+    end
+    
+    CarbonAgent --> CarbonDB
+    CarbonAgent --> Calculations
+    BenchAgent --> BenchDB
+    BenchAgent --> Benchmarks
+    NetZeroAgent --> Plans
+    HybridRetrieval --> FAISS
+    HybridRetrieval --> CarbonDB
+    HybridRetrieval --> BenchDB
 ```
 
-**Required Columns:**
-- **Company Name**: Name of the company
-- **Sector**: Industry sector (Technology, Manufacturing, Energy, etc.)
-- **Region/Country**: Geographic location
-- **Year**: Data year
-- **Metrics**: Carbon Emissions, Water Usage, Energy Consumption, Waste Generated, Renewable Energy %, etc.
+### Data Flow Sequence
 
-**How to Use:**
-1. Upload the CSV file through the web interface
-2. System automatically extracts companies, metrics, sectors, and regions
-3. Ask questions like:
-   - "Compare all companies on carbon emissions"
-   - "Benchmark TATA against others for water usage"
-   - "What is the net zero pathway for Reliance?"
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant CalcEngine
+    participant SQLite
+    participant MongoDB
+    participant VectorStore
+    
+    Agent->>CalcEngine: Request Calculation
+    CalcEngine->>SQLite: Query Emission Factors
+    SQLite->>CalcEngine: Return Factors
+    CalcEngine->>CalcEngine: Perform Calculation
+    CalcEngine->>Agent: Return Results
+    Agent->>MongoDB: Store Results
+    Agent->>VectorStore: Search Knowledge Base
+    VectorStore->>Agent: Return Context
+    Agent->>Agent: Generate Response
+```
 
-**Other Sample Files Available:**
-- `energy_sector_esg_2024.csv` - Energy sector companies
-- `technology_companies_esg_2024.csv` - Technology companies
-- `manufacturing_companies_esg_2024.csv` - Manufacturing companies
-- `multi_sector_esg_comparison_2024.csv` - Multi-sector comparison
-- `scope3_emissions_comparison_2024.csv` - Scope 3 emissions data
-- `water_intensive_industries_2024.csv` - Water usage data
+---
+
+## Tool Router System
+
+### Router Architecture
+
+```mermaid
+graph TD
+    Query[User Query] --> Router[Tool Router]
+    Router --> LLM[Gemini LLM]
+    LLM --> Schema[JSON Schema Validation]
+    Schema --> ToolCalls[Tool Calls]
+    
+    ToolCalls --> Carbon{Carbon Agent?}
+    ToolCalls --> Bench{Benchmark Agent?}
+    ToolCalls --> NetZero{Net-Zero Agent?}
+    ToolCalls --> Chart{Chart Generator?}
+    
+    Carbon -->|Yes| CarbonExec[Execute Carbon Agent]
+    Bench -->|Yes| BenchExec[Execute Benchmark Agent]
+    NetZero -->|Yes| NetZeroExec[Execute Net-Zero Agent]
+    Chart -->|Yes| ChartExec[Execute Chart Generator]
+    
+    CarbonExec --> Results[Tool Results]
+    BenchExec --> Results
+    NetZeroExec --> Results
+    ChartExec --> Results
+    
+    Results --> Layer2[Layer 2: Response Generation]
+```
+
+### Routing Rules
+
+1. **Carbon Accounting**
+   - Keywords: "calculate", "carbon footprint", "emissions", "CO2", "GHG"
+   - Priority: High for calculation requests
+
+2. **Benchmarking**
+   - Keywords: "benchmark", "compare", "peer", "industry average", "percentile"
+   - Priority: High for comparison requests
+
+3. **Net-Zero Planning**
+   - Keywords: "net zero", "net-zero", "SBTi", "pathway", "decarbonization"
+   - Priority: High for planning requests
+
+4. **Chart Generation**
+   - Keywords: "chart", "graph", "visualize", "plot"
+   - Priority: Medium (often automatic)
+
+---
+
+## Calculation Engines
+
+### Carbon Calculation Engine
+
+**Formulas Used:**
+
+1. **Scope 1 (Direct Emissions)**
+   ```
+   Emissions = Activity × Emission Factor × GWP
+   ```
+
+2. **Scope 2 (Indirect - Electricity)**
+   ```
+   Location-based: Emissions = Electricity (kWh) × Grid EF (kg CO₂/kWh)
+   Market-based: Emissions = Electricity (kWh) × Contract EF (kg CO₂/kWh)
+   ```
+
+3. **Scope 3 (Value Chain)**
+   ```
+   Activity-based: Emissions = Activity × EF
+   Spend-based: Emissions = Spend × EF per currency unit
+   ```
+
+**GWP Values (IPCC AR6):**
+- CO₂: 1
+- CH₄: 29.8
+- N₂O: 273
+
+### Benchmarking Engine
+
+**Formulas Used:**
+
+1. **Percentile Rank (Linear Interpolation)**
+   ```
+   Percentile = P_lower + (P_upper - P_lower) × (value - V_lower) / (V_upper - V_lower)
+   ```
+
+2. **Gap Analysis**
+   ```
+   Gap = Target Percentile Value - Company Value
+   Reduction % = (Gap / Company Value) × 100
+   ```
+
+3. **Performance Score**
+   ```
+   Score = (Percentile Rank / 100) × 100
+   ```
+
+### SBTi Pathway Calculator
+
+**Pathway Models:**
+
+1. **1.5°C Scenario**
+   - 2030: 50% reduction from base year
+   - 2050: Net-zero
+
+2. **Well-Below 2°C Scenario**
+   - 2030: 30% reduction from base year
+   - 2050: Net-zero
+
+**Annual Reduction Calculation:**
+```
+Annual Reduction = (Current Emissions - Target Emissions) / Years Remaining
+```
 
 ---
 
@@ -613,136 +1122,68 @@ When code is pushed to `main`, `develop`, or `uat` branches:
 
 ---
 
-## Technical Implementation Details
 
-### Two-Layer AI Architecture
+## Workflow Logging
 
-**Layer 1: Query Classification**
-- **Purpose**: Quickly handle simple queries and classify complex ones
-- **Technology**: Google Gemini 2.0 Flash
-- **Functions**:
-  - Detects greetings → Direct response
-  - Answers from conversation memory → Memory response
-  - Identifies need for clarification → Shows clarification UI
-  - Enhances queries with ESG context → Passes to Layer 2
+### Log Structure
 
-**Layer 2: RAG + Tool Router**
-- **Purpose**: Process complex queries with document search and agent routing
-- **Technology**: Google Gemini 2.5 Flash with JSON schema validation
-- **Functions**:
-  - Searches uploaded documents (vector search)
-  - Routes queries to appropriate AI agents
-  - Combines agent results with document context
-  - Generates comprehensive responses
+Each agent workflow is logged step-by-step:
 
-### Calculation Engines
+**Log Files:**
+- `app.log`: Main application logs
+- `carbon_agent.log`: Carbon Accounting Agent workflows
+- `benchmarking_agent.log`: Benchmarking Agent workflows
+- `net_zero_agent.log`: Net-Zero Planner Agent workflows
 
-**Carbon Calculation Engine**
-- Uses **GHG Protocol Standard** formulas
-- Emission factors from: IPCC 2006, IEA, EPA databases
-- Supports: Scope 1 (direct), Scope 2 (indirect energy), Scope 3 (value chain)
-- Calculates: Activity Data × Emission Factor = Emissions
-
-**Benchmarking Calculation Engine**
-- Statistical methods: Percentile rank, linear interpolation
-- Benchmark data: Industry averages, percentiles (P10, P25, P50, P75, P90, P95)
-- Calculations: Compare company value against benchmark distribution
-- Gap analysis: Identifies distance to target percentiles
-
-**SBTi Pathway Calculator**
-- Implements **Science Based Targets initiative** methodology
-- Scenarios: 1.5°C (7% annual reduction) and well-below 2°C (5% annual reduction)
-- Calculates: Year-by-year emission targets
-- Validates: Pathway compliance with SBTi standards
-
-### Data Storage
-
-**MongoDB**
-- Stores: Calculation results, benchmark results, net zero plans
-- Collections: `carbon_calculations`, `benchmark_results`, `net_zero_plans`
-- Enables: Historical tracking, trend analysis, report generation
-
-**SQLite**
-- Stores: Emission factors, benchmark data, initiative templates
-- Tables: `emission_factors`, `benchmarks`, `initiatives`
-- Enables: Fast lookups, offline capability, easy updates
-
-**ChromaDB (Vector Store)**
-- Stores: Document embeddings for semantic search
-- Enables: Finding relevant information from uploaded documents
-- Technology: Vector similarity search
-
-### File Processing
-
-**Supported Formats**: CSV, Excel (.xlsx), PDF
-
-**Processing Flow**:
-1. File uploaded → Detects file type
-2. Parses file → Extracts structured data
-3. Analyzes content → Identifies companies, metrics, sectors, regions
-4. Wraps in tags → `[FILE_ANALYSIS]` tags for agent processing
-5. Agents extract → Use file data to enhance calculations
-
-**CSV Format Requirements**:
-- Headers: Company Name, Sector, Region, Year, Metrics (Carbon Emissions, Water Usage, etc.)
-- Example: See `sample_data/indian_companies_esg_benchmark_2024.csv`
-
-### Agent Communication
-
-**Tool Router**
-- Uses JSON schema validation to ensure correct tool selection
-- Routes based on keywords and file context
-- Supports parallel execution of multiple tools
-- Handles errors gracefully with fallback mechanisms
-
-**Agent Response Format**:
+**Log Format:**
 ```json
 {
-  "status": "success",
-  "explanation": "Natural language explanation",
-  "calculation_result": { ... },
-  "charts": { ... },
-  "calculation_proof": { ... },
-  "timestamp": "2024-01-01T00:00:00Z"
+  "timestamp": "2025-01-15T10:30:45.123456+00:00",
+  "session_id": "session_123",
+  "step": "CARBON_CALCULATION_START",
+  "agent": "carbon",
+  "details": {
+    "query": "Calculate carbon footprint...",
+    "extracted_data": {...},
+    "execution_time": 1.23
+  }
 }
 ```
 
-### Error Handling
-
-**Clarification System**
-- Detects missing required information
-- Generates intelligent clarification questions
-- Gathers suggestions from database and knowledge base
-- Handles user responses and continues processing
-
-**Validation**
-- Input validation: Checks data ranges, formats, completeness
-- Calculation validation: Verifies formulas, data sources
-- Pathway validation: Ensures SBTi compliance
-
-**Fallback Mechanisms**
-- LLM timeout → Uses rule-based extraction
-- Database unavailable → Uses cached data
-- Calculation error → Returns error with helpful message
+**Workflow Steps Tracked:**
+- Query reception
+- Data extraction
+- Clarification checks
+- Database lookups
+- Calculations
+- Result storage
+- Visualization generation
+- Response generation
+- Workflow completion
 
 ---
 
-## Conclusion
+## Summary
 
-This documentation provides a comprehensive overview of the FitSol ESG Co-Pilot system from both technical and domain expert perspectives. The system combines:
+This technical documentation provides a complete overview of:
 
-- **AI Intelligence** for understanding natural language and extracting data
-- **Real Calculations** using verified formulas and databases
-- **Industry Standards** (GHG Protocol, SBTi) for accuracy and compliance
-- **User-Friendly Interface** for easy interaction
-- **File Processing** for bulk operations and comparisons
+1. **System Architecture**: Multi-layer AI system with specialized agents
+2. **Application Flow**: End-to-end query processing
+3. **Agent Workflows**: Detailed workflows for each agent
+4. **Hybrid Architecture**: LLM + Python functions
+5. **Data Management**: Storage and retrieval systems
+6. **Tool Routing**: Intelligent agent selection
+7. **Calculations**: Mathematical formulas and engines
+8. **Visualization**: Automatic chart generation
+9. **Logging**: Comprehensive workflow tracking
 
-The three AI agents work together to provide a complete ESG intelligence platform that helps organizations measure, benchmark, and plan their carbon emissions reduction strategies.
-
-For technical support or questions, please refer to the codebase or contact the development team.
+The system is designed to be:
+- **Transparent**: Full calculation proofs and data sources
+- **Accurate**: Real mathematical calculations, not LLM-generated numbers
+- **User-Friendly**: Natural language interactions with automatic clarifications
+- **Comprehensive**: Detailed responses with visualizations and recommendations
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2024  
-**Maintained By**: FitSol Development Team
+*Last Updated: January 2025*
+
