@@ -1,16 +1,405 @@
 # Agents Architecture & Working Documentation
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [Agent System Architecture](#agent-system-architecture)
-3. [Supervisor Agent](#supervisor-agent)
-4. [Specialized Agents](#specialized-agents)
-5. [Agent Lifecycle](#agent-lifecycle)
-6. [Agent Communication](#agent-communication)
-7. [Agent Processing Flow](#agent-processing-flow)
-8. [Learning & Adaptation](#learning--adaptation)
-9. [Error Handling & Recovery](#error-handling--recovery)
-10. [Performance Optimization](#performance-optimization)
+1. [Introduction for ESG Experts](#introduction-for-esg-experts)
+2. [Understanding AI Agents](#understanding-ai-agents)
+3. [The Three Specialized Agents](#the-three-specialized-agents)
+4. [How Agents Work Together](#how-agents-work-together)
+5. [ML Concepts Explained](#ml-concepts-explained)
+6. [Agent System Architecture](#agent-system-architecture)
+7. [Supervisor Agent](#supervisor-agent)
+8. [Specialized Agents in Detail](#specialized-agents-in-detail)
+9. [Agent Processing Flow](#agent-processing-flow)
+10. [Technical Implementation](#technical-implementation)
+
+---
+
+## Introduction for ESG Experts
+
+### What is an AI Agent?
+
+Think of an AI agent as a **specialized ESG consultant** that never sleeps and has instant access to vast amounts of data. Just like you might have different consultants for different tasks:
+- A **carbon accounting specialist** for emissions calculations
+- A **benchmarking analyst** for industry comparisons
+- A **net-zero strategist** for pathway planning
+
+Our platform has three specialized AI agents, each an expert in their domain, working together to answer your ESG questions.
+
+### Why Three Agents?
+
+Each agent has its own **calculation engine** (calculator) because:
+
+1. **Carbon Accounting Agent** → Uses **GHG Protocol Calculator**
+   - Calculates Scope 1, 2, and 3 emissions
+   - Applies emission factors from databases
+   - Follows GHG Protocol standards
+
+2. **Benchmarking Agent** → Uses **Benchmark Statistics Calculator**
+   - Compares your metrics to industry standards
+   - Calculates percentiles and rankings
+   - Normalizes metrics for fair comparison
+
+3. **Net Zero Agent** → Uses **SBTi Pathway Calculator**
+   - Calculates science-based reduction pathways
+   - Scores decarbonization initiatives
+   - Validates net-zero plans
+
+### The Magic: AI + Calculation Engines
+
+Each agent combines two powerful components:
+
+```mermaid
+graph LR
+    subgraph "Each Agent Has Two Parts"
+        AI[AI Brain<br/>Understands Your Question]
+        CALC[Calculator<br/>Does the Math]
+    end
+    
+    AI -->|Extracts Data| CALC
+    CALC -->|Returns Results| AI
+    AI -->|Explains Results| USER[You]
+    
+    style AI fill:#e1f5ff
+    style CALC fill:#fff4e1
+    style USER fill:#e8f5e9
+```
+
+**The AI Brain** (LLM - Large Language Model):
+- Understands your natural language questions
+- Extracts relevant data from your query
+- Asks clarifying questions if needed
+- Explains results in plain language
+
+**The Calculator**:
+- Performs accurate mathematical calculations
+- Uses verified emission factors and benchmarks
+- Follows industry standards (GHG Protocol, SBTi)
+- Ensures precision and compliance
+
+---
+
+## Understanding AI Agents
+
+### What Makes an Agent "Intelligent"?
+
+An AI agent in our system is like having a **smart assistant** that:
+
+1. **Understands Context**: Uses RAG (Retrieval Augmented Generation) to find relevant information
+2. **Remembers**: Learns from past interactions
+3. **Validates**: Checks data before calculations
+4. **Clarifies**: Asks questions when information is missing
+5. **Calculates**: Uses specialized calculators for accurate results
+6. **Explains**: Provides clear, understandable responses
+
+### The Three Agents Overview
+
+```mermaid
+graph TB
+    subgraph "Carbon Accounting Agent"
+        CA_AI[AI: Understands<br/>emission queries]
+        CA_CALC[Calculator: GHG Protocol<br/>Emission Calculations]
+        CA_AI --> CA_CALC
+        CA_CALC --> CA_RESULT[Results: Scope 1, 2, 3<br/>emissions in tCO2e]
+    end
+    
+    subgraph "Benchmarking Agent"
+        BA_AI[AI: Understands<br/>comparison queries]
+        BA_CALC[Calculator: Benchmark<br/>Statistics]
+        BA_AI --> BA_CALC
+        BA_CALC --> BA_RESULT[Results: Rankings,<br/>percentiles, comparisons]
+    end
+    
+    subgraph "Net Zero Agent"
+        NZ_AI[AI: Understands<br/>planning queries]
+        NZ_CALC[Calculator: SBTi<br/>Pathway Calculator]
+        NZ_AI --> NZ_CALC
+        NZ_CALC --> NZ_RESULT[Results: Net-zero plans,<br/>pathways, initiatives]
+    end
+    
+    style CA_AI fill:#e1f5ff
+    style CA_CALC fill:#fff4e1
+    style BA_AI fill:#e1f5ff
+    style BA_CALC fill:#fff4e1
+    style NZ_AI fill:#e1f5ff
+    style NZ_CALC fill:#fff4e1
+```
+
+---
+
+## The Three Specialized Agents
+
+### 1. Carbon Accounting Agent
+
+**Purpose**: Calculate and track carbon emissions following GHG Protocol standards.
+
+**What it does**:
+- Calculates Scope 1 (direct emissions), Scope 2 (electricity), and Scope 3 (value chain) emissions
+- Uses emission factors from verified databases
+- Classifies activities into correct scopes
+- Generates emission reports
+
+**Calculator**: **GHG Protocol Calculator**
+- Contains emission factors for thousands of activities
+- Applies Global Warming Potentials (GWP) for CO2, CH4, N2O
+- Handles unit conversions automatically
+- Validates calculations against GHG Protocol standards
+
+**Example Query**:
+> "Calculate Scope 1 emissions for 1000 liters of diesel fuel used in our fleet"
+
+**How it works**:
+```mermaid
+sequenceDiagram
+    participant You
+    participant AI_Brain
+    participant GHG_Calculator
+    participant Database
+    
+    You->>AI_Brain: "Calculate Scope 1 emissions<br/>for 1000L diesel"
+    AI_Brain->>AI_Brain: Understand: Need Scope 1<br/>Activity: Diesel fuel<br/>Amount: 1000 liters
+    AI_Brain->>GHG_Calculator: Calculate emissions<br/>Activity: diesel<br/>Amount: 1000L
+    GHG_Calculator->>Database: Get emission factor<br/>for diesel
+    Database-->>GHG_Calculator: Factor: 2.68 kg CO2/L
+    GHG_Calculator->>GHG_Calculator: Calculate:<br/>1000L × 2.68 = 2,680 kg CO2e
+    GHG_Calculator-->>AI_Brain: Result: 2.68 tCO2e
+    AI_Brain->>AI_Brain: Format explanation
+    AI_Brain-->>You: "Your Scope 1 emissions:<br/>2.68 tCO2e<br/>(1000L diesel × 2.68 kg CO2/L)"
+```
+
+### 2. Benchmarking Agent
+
+**Purpose**: Compare your ESG metrics against industry standards and peers.
+
+**What it does**:
+- Compares your metrics to industry averages
+- Calculates your percentile ranking
+- Identifies gaps and opportunities
+- Normalizes metrics for fair comparison
+
+**Calculator**: **Benchmark Statistics Calculator**
+- Contains benchmark data for various sectors
+- Calculates percentiles (10th, 25th, 50th, 75th, 90th)
+- Normalizes metrics by revenue, employees, or other factors
+- Compares against peer groups
+
+**Example Query**:
+> "How does our carbon intensity compare to the manufacturing industry average?"
+
+**How it works**:
+```mermaid
+sequenceDiagram
+    participant You
+    participant AI_Brain
+    participant Benchmark_Calculator
+    participant Benchmark_DB
+    
+    You->>AI_Brain: "Compare our carbon intensity<br/>to industry average"
+    AI_Brain->>AI_Brain: Extract: Your carbon intensity<br/>Sector: Manufacturing
+    AI_Brain->>Benchmark_Calculator: Compare metric<br/>Metric: Carbon intensity<br/>Sector: Manufacturing
+    Benchmark_Calculator->>Benchmark_DB: Get industry benchmarks<br/>for manufacturing
+    Benchmark_DB-->>Benchmark_Calculator: Industry avg: 0.5 tCO2e/$M revenue<br/>Your value: 0.3 tCO2e/$M revenue
+    Benchmark_Calculator->>Benchmark_Calculator: Calculate percentile:<br/>You are in 25th percentile<br/>(Better than 75% of industry)
+    Benchmark_Calculator-->>AI_Brain: Result: 25th percentile<br/>0.3 vs 0.5 industry avg
+    AI_Brain-->>You: "Your carbon intensity is 0.3 tCO2e/$M,<br/>which is 40% better than industry average<br/>(0.5 tCO2e/$M). You rank in the 25th percentile."
+```
+
+### 3. Net Zero Agent
+
+**Purpose**: Create and validate science-based net-zero plans.
+
+**What it does**:
+- Creates net-zero pathways following SBTi methodology
+- Calculates annual reduction targets
+- Scores and prioritizes decarbonization initiatives
+- Validates plan feasibility
+
+**Calculator**: **SBTi Pathway Calculator**
+- Applies Science-Based Targets initiative (SBTi) methodology
+- Calculates linear and exponential reduction pathways
+- Scores initiatives by impact, feasibility, and cost
+- Validates targets against 1.5°C scenarios
+
+**Example Query**:
+> "Create a net-zero plan to reach zero emissions by 2050"
+
+**How it works**:
+```mermaid
+sequenceDiagram
+    participant You
+    participant AI_Brain
+    participant SBTi_Calculator
+    participant Carbon_Agent
+    participant Initiative_Scorer
+    
+    You->>AI_Brain: "Create net-zero plan<br/>for 2050"
+    AI_Brain->>Carbon_Agent: Get current emissions<br/>(baseline)
+    Carbon_Agent-->>AI_Brain: Baseline: 10,000 tCO2e (2024)
+    AI_Brain->>SBTi_Calculator: Calculate pathway<br/>From: 10,000 tCO2e (2024)<br/>To: 0 tCO2e (2050)
+    SBTi_Calculator->>SBTi_Calculator: Apply SBTi methodology:<br/>Linear reduction: 400 tCO2e/year<br/>Annual targets calculated
+    SBTi_Calculator-->>AI_Brain: Pathway: 26 years<br/>Annual reduction: 400 tCO2e
+    AI_Brain->>Initiative_Scorer: Score initiatives<br/>for achieving targets
+    Initiative_Scorer-->>AI_Brain: Top initiatives:<br/>1. Renewable energy (high impact)<br/>2. Energy efficiency (medium impact)
+    AI_Brain-->>You: "Net-zero plan created:<br/>Baseline: 10,000 tCO2e (2024)<br/>Target: 0 tCO2e (2050)<br/>Annual reduction: 400 tCO2e<br/>Top initiatives: Renewable energy, Efficiency"
+```
+
+---
+
+## How Agents Work Together
+
+### The Supervisor: Your Project Manager
+
+Think of the Supervisor Agent as a **project manager** who:
+- Understands your complex questions
+- Breaks them into tasks
+- Assigns tasks to the right specialist agent
+- Combines results into a complete answer
+
+**Example**: "Calculate our carbon footprint and compare it to industry average"
+
+```mermaid
+graph TB
+    YOU[You: Complex Question] --> SUPERVISOR[Supervisor Agent<br/>Project Manager]
+    
+    SUPERVISOR --> TASK1[Task 1:<br/>Calculate Carbon Footprint]
+    SUPERVISOR --> TASK2[Task 2:<br/>Compare to Industry]
+    
+    TASK1 --> CARBON[Carbon Agent<br/>+ GHG Calculator]
+    TASK2 --> BENCH[Benchmarking Agent<br/>+ Benchmark Calculator]
+    
+    CARBON --> RESULT1[Result 1:<br/>10,000 tCO2e]
+    BENCH --> RESULT2[Result 2:<br/>25th percentile]
+    
+    RESULT1 --> SUPERVISOR
+    RESULT2 --> SUPERVISOR
+    
+    SUPERVISOR --> ANSWER[Combined Answer:<br/>Your footprint is 10,000 tCO2e,<br/>which ranks in the 25th percentile<br/>of your industry]
+    
+    style SUPERVISOR fill:#ffeb3b
+    style CARBON fill:#e1f5ff
+    style BENCH fill:#e1f5ff
+    style ANSWER fill:#e8f5e9
+```
+
+---
+
+## ML Concepts Explained
+
+### What is RAG? (Retrieval Augmented Generation)
+
+**Simple Explanation**: RAG is like having a **research assistant** that:
+1. Searches through your knowledge base (documents, reports, standards)
+2. Finds relevant information
+3. Uses that information to give you accurate answers
+
+**Why it matters for ESG**:
+- Your company's historical data
+- Industry standards (GHG Protocol, SBTi)
+- Emission factor databases
+- Benchmark data
+
+```mermaid
+graph LR
+    QUERY[Your Question] --> RAG[RAG System]
+    
+    RAG --> VECTOR[Vector Store<br/>Search Similar Content]
+    RAG --> KNOWLEDGE[Knowledge Base<br/>Your Documents]
+    
+    VECTOR --> RELEVANT[Relevant<br/>Information]
+    KNOWLEDGE --> RELEVANT
+    
+    RELEVANT --> LLM[LLM Uses Info<br/>to Answer]
+    LLM --> ANSWER[Accurate Answer<br/>Based on Your Data]
+    
+    style RAG fill:#e1f5ff
+    style VECTOR fill:#fff4e1
+    style LLM fill:#f3e5f5
+    style ANSWER fill:#e8f5e9
+```
+
+### What is a Vector Store?
+
+**Simple Explanation**: A vector store is like a **smart filing cabinet** that:
+- Stores documents as "vectors" (mathematical representations)
+- Finds similar documents quickly
+- Understands meaning, not just keywords
+
+**Example for ESG**:
+- You ask: "What are Scope 3 emissions?"
+- Vector store finds: Documents about "value chain emissions", "indirect emissions", "supply chain"
+- Even if they don't contain the exact words "Scope 3"
+
+```mermaid
+graph TB
+    DOC1[Document 1:<br/>Scope 3 emissions<br/>are indirect...] --> VECTOR1[Vector 1]
+    DOC2[Document 2:<br/>Value chain emissions<br/>include...] --> VECTOR2[Vector 2]
+    DOC3[Document 3:<br/>Supply chain carbon<br/>footprint...] --> VECTOR3[Vector 3]
+    
+    VECTOR1 --> STORE[Vector Store<br/>Smart Filing System]
+    VECTOR2 --> STORE
+    VECTOR3 --> STORE
+    
+    QUERY[Query: Scope 3] --> SEARCH[Search Similar<br/>Vectors]
+    SEARCH --> STORE
+    STORE --> RESULTS[Finds All 3 Documents<br/>Even with Different Words]
+    
+    style STORE fill:#fff4e1
+    style SEARCH fill:#e1f5ff
+    style RESULTS fill:#e8f5e9
+```
+
+### What is an LLM? (Large Language Model)
+
+**Simple Explanation**: An LLM is the **AI brain** that:
+- Understands natural language (your questions in plain English)
+- Generates human-like responses
+- Learns from vast amounts of text
+- In our system: Google's Gemini model
+
+**How it helps in ESG**:
+- Understands: "Calculate emissions for our diesel usage"
+- Extracts: Activity = diesel, Amount = from your data
+- Explains: Results in clear, understandable language
+
+```mermaid
+graph LR
+    INPUT[Your Question<br/>Natural Language] --> LLM[LLM<br/>AI Brain]
+    
+    LLM --> UNDERSTAND[Understands<br/>Intent & Entities]
+    LLM --> EXTRACT[Extracts<br/>Structured Data]
+    LLM --> EXPLAIN[Explains<br/>Results Clearly]
+    
+    UNDERSTAND --> CALC[Calculator<br/>Does Math]
+    CALC --> EXPLAIN
+    EXPLAIN --> OUTPUT[Clear Answer<br/>in Plain Language]
+    
+    style LLM fill:#f3e5f5
+    style CALC fill:#fff4e1
+    style OUTPUT fill:#e8f5e9
+```
+
+### How RAG + LLM + Calculator Work Together
+
+```mermaid
+graph TB
+    QUERY[Your Question:<br/>Calculate Scope 1 emissions] --> SUPERVISOR[Supervisor Agent]
+    
+    SUPERVISOR --> RAG[RAG System]
+    RAG --> VECTOR[Vector Store<br/>Finds Relevant Info]
+    VECTOR --> CONTEXT[Context:<br/>Emission factors,<br/>GHG Protocol rules]
+    
+    CONTEXT --> LLM[LLM<br/>Understands Query]
+    LLM --> EXTRACT[Extracts:<br/>Activity: Diesel<br/>Amount: 1000L]
+    
+    EXTRACT --> CALC[GHG Calculator<br/>Calculates: 2.68 tCO2e]
+    
+    CALC --> LLM2[LLM<br/>Formats Answer]
+    LLM2 --> ANSWER[Answer:<br/>Your Scope 1 emissions<br/>are 2.68 tCO2e...]
+    
+    style RAG fill:#e1f5ff
+    style LLM fill:#f3e5f5
+    style CALC fill:#fff4e1
+    style ANSWER fill:#e8f5e9
+```
 
 ---
 
@@ -19,7 +408,7 @@
 The Fitsol ESG platform uses a sophisticated multi-agent system where specialized AI agents work together to handle complex ESG queries. Each agent is designed for specific domains (Carbon Accounting, Benchmarking, Net Zero Planning) while sharing common infrastructure for semantic understanding, validation, and learning.
 
 ### Key Principles
-- **Specialization**: Each agent handles a specific domain
+- **Specialization**: Each agent handles a specific domain with its own calculator
 - **Coordination**: Supervisor agent orchestrates multi-agent tasks
 - **Intelligence**: Unified semantic understanding with RAG
 - **Adaptation**: Continuous learning from user interactions
@@ -222,7 +611,7 @@ flowchart TD
 
 ---
 
-## Specialized Agents
+## Specialized Agents in Detail
 
 ### Carbon Accounting Agent
 
@@ -1310,4 +1699,59 @@ class NewDomainAgent(BaseAgent):
         # Implement validation logic
         pass
 ```
+
+---
+
+## Summary for ESG Experts
+
+### Key Takeaways
+
+1. **Three Specialized Agents, Three Calculators**:
+   - **Carbon Accounting Agent** → GHG Protocol Calculator
+   - **Benchmarking Agent** → Benchmark Statistics Calculator  
+   - **Net Zero Agent** → SBTi Pathway Calculator
+
+2. **How It Works**:
+   - You ask questions in natural language
+   - AI (LLM) understands your question
+   - RAG finds relevant information from your knowledge base
+   - Calculator performs accurate calculations
+   - AI explains results clearly
+
+3. **Why This Architecture**:
+   - **Accuracy**: Calculators ensure precise, standards-compliant calculations
+   - **Intelligence**: AI understands context and explains results
+   - **Flexibility**: Can handle complex, multi-part questions
+   - **Learning**: System improves from your interactions
+
+4. **ML Concepts You Should Know**:
+   - **RAG (Retrieval Augmented Generation)**: Finds relevant information from your documents
+   - **Vector Store**: Smart search that understands meaning, not just keywords
+   - **LLM (Large Language Model)**: AI brain that understands and explains
+   - **Calculator**: Mathematical engine that ensures accuracy
+
+### Real-World Example
+
+**Your Question**: "Calculate our total carbon footprint for 2024 and tell me how we compare to our industry"
+
+**What Happens**:
+1. Supervisor Agent breaks this into two tasks
+2. Carbon Agent calculates your footprint using GHG Protocol Calculator
+3. Benchmarking Agent compares to industry using Benchmark Calculator
+4. Results are combined into one clear answer
+
+**Result**: 
+> "Your total carbon footprint for 2024 is 10,000 tCO2e (Scope 1: 5,000, Scope 2: 3,000, Scope 3: 2,000). This places you in the 25th percentile of your industry, meaning you're performing better than 75% of similar companies."
+
+### Benefits for ESG Professionals
+
+- **Time Savings**: No manual calculations or data lookups
+- **Accuracy**: Follows industry standards automatically
+- **Consistency**: Same methodology every time
+- **Insights**: Clear explanations and comparisons
+- **Scalability**: Handles complex, multi-faceted questions
+
+---
+
+**For Technical Details**: See the sections below for implementation details, code examples, and advanced configuration options.
 
