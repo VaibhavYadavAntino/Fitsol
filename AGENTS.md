@@ -10,7 +10,6 @@
 7. [Supervisor Agent](#supervisor-agent)
 8. [Specialized Agents in Detail](#specialized-agents-in-detail)
 9. [Agent Processing Flow](#agent-processing-flow)
-10. [Technical Implementation](#technical-implementation)
 
 ---
 
@@ -91,39 +90,6 @@ An AI agent in our system is like having a **smart assistant** that:
 5. **Calculates**: Uses specialized calculators for accurate results
 6. **Explains**: Provides clear, understandable responses
 
-### The Three Agents Overview
-
-```mermaid
-graph TB
-    subgraph "Carbon Accounting Agent"
-        CA_AI[AI: Understands<br/>emission queries]
-        CA_CALC[Calculator: GHG Protocol<br/>Emission Calculations]
-        CA_AI --> CA_CALC
-        CA_CALC --> CA_RESULT[Results: Scope 1, 2, 3<br/>emissions in tCO2e]
-    end
-    
-    subgraph "Benchmarking Agent"
-        BA_AI[AI: Understands<br/>comparison queries]
-        BA_CALC[Calculator: Benchmark<br/>Statistics]
-        BA_AI --> BA_CALC
-        BA_CALC --> BA_RESULT[Results: Rankings,<br/>percentiles, comparisons]
-    end
-    
-    subgraph "Net Zero Agent"
-        NZ_AI[AI: Understands<br/>planning queries]
-        NZ_CALC[Calculator: SBTi<br/>Pathway Calculator]
-        NZ_AI --> NZ_CALC
-        NZ_CALC --> NZ_RESULT[Results: Net-zero plans,<br/>pathways, initiatives]
-    end
-    
-    style CA_AI fill:#e1f5ff
-    style CA_CALC fill:#fff4e1
-    style BA_AI fill:#e1f5ff
-    style BA_CALC fill:#fff4e1
-    style NZ_AI fill:#e1f5ff
-    style NZ_CALC fill:#fff4e1
-```
-
 ---
 
 ## The Three Specialized Agents
@@ -144,28 +110,6 @@ graph TB
 - Handles unit conversions automatically
 - Validates calculations against GHG Protocol standards
 
-**Example Query**:
-> "Calculate Scope 1 emissions for 1000 liters of diesel fuel used in our fleet"
-
-**How it works**:
-```mermaid
-sequenceDiagram
-    participant You
-    participant AI_Brain
-    participant GHG_Calculator
-    participant Database
-    
-    You->>AI_Brain: "Calculate Scope 1 emissions<br/>for 1000L diesel"
-    AI_Brain->>AI_Brain: Understand: Need Scope 1<br/>Activity: Diesel fuel<br/>Amount: 1000 liters
-    AI_Brain->>GHG_Calculator: Calculate emissions<br/>Activity: diesel<br/>Amount: 1000L
-    GHG_Calculator->>Database: Get emission factor<br/>for diesel
-    Database-->>GHG_Calculator: Factor: 2.68 kg CO2/L
-    GHG_Calculator->>GHG_Calculator: Calculate:<br/>1000L × 2.68 = 2,680 kg CO2e
-    GHG_Calculator-->>AI_Brain: Result: 2.68 tCO2e
-    AI_Brain->>AI_Brain: Format explanation
-    AI_Brain-->>You: "Your Scope 1 emissions:<br/>2.68 tCO2e<br/>(1000L diesel × 2.68 kg CO2/L)"
-```
-
 ### 2. Benchmarking Agent
 
 **Purpose**: Compare your ESG metrics against industry standards and peers.
@@ -181,27 +125,6 @@ sequenceDiagram
 - Calculates percentiles (10th, 25th, 50th, 75th, 90th)
 - Normalizes metrics by revenue, employees, or other factors
 - Compares against peer groups
-
-**Example Query**:
-> "How does our carbon intensity compare to the manufacturing industry average?"
-
-**How it works**:
-```mermaid
-sequenceDiagram
-    participant You
-    participant AI_Brain
-    participant Benchmark_Calculator
-    participant Benchmark_DB
-    
-    You->>AI_Brain: "Compare our carbon intensity<br/>to industry average"
-    AI_Brain->>AI_Brain: Extract: Your carbon intensity<br/>Sector: Manufacturing
-    AI_Brain->>Benchmark_Calculator: Compare metric<br/>Metric: Carbon intensity<br/>Sector: Manufacturing
-    Benchmark_Calculator->>Benchmark_DB: Get industry benchmarks<br/>for manufacturing
-    Benchmark_DB-->>Benchmark_Calculator: Industry avg: 0.5 tCO2e/$M revenue<br/>Your value: 0.3 tCO2e/$M revenue
-    Benchmark_Calculator->>Benchmark_Calculator: Calculate percentile:<br/>You are in 25th percentile<br/>(Better than 75% of industry)
-    Benchmark_Calculator-->>AI_Brain: Result: 25th percentile<br/>0.3 vs 0.5 industry avg
-    AI_Brain-->>You: "Your carbon intensity is 0.3 tCO2e/$M,<br/>which is 40% better than industry average<br/>(0.5 tCO2e/$M). You rank in the 25th percentile."
-```
 
 ### 3. Net Zero Agent
 
@@ -219,28 +142,220 @@ sequenceDiagram
 - Scores initiatives by impact, feasibility, and cost
 - Validates targets against 1.5°C scenarios
 
-**Example Query**:
-> "Create a net-zero plan to reach zero emissions by 2050"
+---
 
-**How it works**:
+## Complete Agent Workflows
+
+This section shows the complete workflow for each of the three specialized agents, from receiving a query to delivering the final response.
+
+### Carbon Accounting Agent - Complete Workflow
+
 ```mermaid
-sequenceDiagram
-    participant You
-    participant AI_Brain
-    participant SBTi_Calculator
-    participant Carbon_Agent
-    participant Initiative_Scorer
+flowchart TD
+    START[User Query:<br/>Calculate emissions] --> UNDERSTAND[AI Brain Understands Query]
+    UNDERSTAND --> EXTRACT[Extract Activity Data:<br/>- Activity type<br/>- Amount<br/>- Units<br/>- Scope]
     
-    You->>AI_Brain: "Create net-zero plan<br/>for 2050"
-    AI_Brain->>Carbon_Agent: Get current emissions<br/>(baseline)
-    Carbon_Agent-->>AI_Brain: Baseline: 10,000 tCO2e (2024)
-    AI_Brain->>SBTi_Calculator: Calculate pathway<br/>From: 10,000 tCO2e (2024)<br/>To: 0 tCO2e (2050)
-    SBTi_Calculator->>SBTi_Calculator: Apply SBTi methodology:<br/>Linear reduction: 400 tCO2e/year<br/>Annual targets calculated
-    SBTi_Calculator-->>AI_Brain: Pathway: 26 years<br/>Annual reduction: 400 tCO2e
-    AI_Brain->>Initiative_Scorer: Score initiatives<br/>for achieving targets
-    Initiative_Scorer-->>AI_Brain: Top initiatives:<br/>1. Renewable energy (high impact)<br/>2. Energy efficiency (medium impact)
-    AI_Brain-->>You: "Net-zero plan created:<br/>Baseline: 10,000 tCO2e (2024)<br/>Target: 0 tCO2e (2050)<br/>Annual reduction: 400 tCO2e<br/>Top initiatives: Renewable energy, Efficiency"
+    EXTRACT --> VALIDATE{Data Complete?}
+    VALIDATE -->|No| CLARIFY[Ask User for<br/>Missing Information]
+    CLARIFY --> EXTRACT
+    
+    VALIDATE -->|Yes| SCOPE[Determine Scope:<br/>Scope 1, 2, or 3]
+    
+    SCOPE --> GET_FACTOR[GHG Calculator:<br/>Get Emission Factor<br/>from Database]
+    GET_FACTOR --> CALCULATE[GHG Calculator:<br/>Calculate Emissions<br/>Amount × Factor]
+    
+    CALCULATE --> CONVERT[GHG Calculator:<br/>Convert Units<br/>kg to tCO2e]
+    CONVERT --> APPLY_GWP[GHG Calculator:<br/>Apply Global Warming<br/>Potentials GWP]
+    
+    APPLY_GWP --> VERIFY[Verify Calculation<br/>against GHG Protocol]
+    VERIFY --> FORMAT[AI Brain Formats<br/>Response with Explanation]
+    FORMAT --> RESULT[Return Result:<br/>Emissions in tCO2e<br/>with breakdown]
+    
+    style START fill:#e8f5e9
+    style UNDERSTAND fill:#e1f5ff
+    style GET_FACTOR fill:#fff4e1
+    style CALCULATE fill:#fff4e1
+    style CONVERT fill:#fff4e1
+    style APPLY_GWP fill:#fff4e1
+    style RESULT fill:#e8f5e9
 ```
+
+**Workflow Steps Explained:**
+
+1. **User Query**: User asks in natural language (e.g., "Calculate Scope 1 emissions for 1000L diesel")
+2. **AI Understanding**: LLM extracts structured data from the query
+3. **Data Extraction**: Identifies activity type, amount, units, and scope
+4. **Validation**: Checks if all required data is present
+5. **Clarification** (if needed): Asks user for missing information
+6. **Scope Determination**: Classifies activity into Scope 1, 2, or 3
+7. **Emission Factor Lookup**: GHG Calculator retrieves emission factor from database
+8. **Calculation**: Multiplies activity amount by emission factor
+9. **Unit Conversion**: Converts to standard units (tCO2e)
+10. **GWP Application**: Applies Global Warming Potentials for CH4, N2O
+11. **Verification**: Validates calculation against GHG Protocol standards
+12. **Response Formatting**: AI formats result with clear explanation
+13. **Result**: Returns emissions breakdown with detailed explanation
+
+### Benchmarking Agent - Complete Workflow
+
+```mermaid
+flowchart TD
+    START[User Query:<br/>Compare our metrics] --> UNDERSTAND[AI Brain Understands Query]
+    UNDERSTAND --> EXTRACT[Extract Metric Data:<br/>- Metric name<br/>- Your value<br/>- Sector/Industry<br/>- Year]
+    
+    EXTRACT --> VALIDATE{Data Complete?}
+    VALIDATE -->|No| CLARIFY[Ask User for<br/>Missing Information]
+    CLARIFY --> EXTRACT
+    
+    VALIDATE -->|Yes| NORMALIZE[Benchmark Calculator:<br/>Normalize Metric<br/>by revenue/employees]
+    
+    NORMALIZE --> GET_BENCHMARK[Benchmark Calculator:<br/>Get Industry Benchmarks<br/>from Database]
+    GET_BENCHMARK --> CALC_PERCENTILE[Benchmark Calculator:<br/>Calculate Percentile<br/>Ranking]
+    
+    CALC_PERCENTILE --> COMPARE[Benchmark Calculator:<br/>Compare to:<br/>- Industry average<br/>- Median<br/>- Percentiles]
+    
+    COMPARE --> ANALYZE[Analyze Gap:<br/>How much better/worse<br/>than industry]
+    ANALYZE --> FORMAT[AI Brain Formats<br/>Response with Insights]
+    FORMAT --> RESULT[Return Result:<br/>Ranking, comparison,<br/>and recommendations]
+    
+    style START fill:#e8f5e9
+    style UNDERSTAND fill:#e1f5ff
+    style NORMALIZE fill:#fff4e1
+    style GET_BENCHMARK fill:#fff4e1
+    style CALC_PERCENTILE fill:#fff4e1
+    style COMPARE fill:#fff4e1
+    style RESULT fill:#e8f5e9
+```
+
+**Workflow Steps Explained:**
+
+1. **User Query**: User asks to compare metrics (e.g., "Compare our carbon intensity to industry")
+2. **AI Understanding**: LLM extracts metric name, value, sector, and year
+3. **Data Extraction**: Identifies what metric to compare and your company's value
+4. **Validation**: Checks if all required data is present
+5. **Clarification** (if needed): Asks user for missing information
+6. **Normalization**: Benchmark Calculator normalizes metric by revenue, employees, or other factors
+7. **Benchmark Retrieval**: Gets industry benchmark data from database
+8. **Percentile Calculation**: Calculates where you rank (10th, 25th, 50th, 75th, 90th percentile)
+9. **Comparison**: Compares your value to industry average, median, and percentiles
+10. **Gap Analysis**: Analyzes how much better or worse you are compared to industry
+11. **Response Formatting**: AI formats result with insights and recommendations
+12. **Result**: Returns ranking, comparison, and actionable insights
+
+### Net Zero Agent - Complete Workflow
+
+```mermaid
+flowchart TD
+    START[User Query:<br/>Create net-zero plan] --> UNDERSTAND[AI Brain Understands Query]
+    UNDERSTAND --> EXTRACT[Extract Plan Requirements:<br/>- Target year<br/>- Baseline year<br/>- Reduction target<br/>- Constraints]
+    
+    EXTRACT --> VALIDATE{Data Complete?}
+    VALIDATE -->|No| CLARIFY[Ask User for<br/>Missing Information]
+    CLARIFY --> EXTRACT
+    
+    VALIDATE -->|Yes| GET_BASELINE[Get Baseline Emissions:<br/>Query Carbon Agent<br/>for current emissions]
+    
+    GET_BASELINE --> CALC_PATHWAY[SBTi Calculator:<br/>Calculate Reduction Pathway<br/>using SBTi methodology]
+    
+    CALC_PATHWAY --> ANNUAL_TARGETS[SBTi Calculator:<br/>Calculate Annual<br/>Reduction Targets]
+    
+    ANNUAL_TARGETS --> IDENTIFY_INIT[Identify Decarbonization<br/>Initiatives]
+    
+    IDENTIFY_INIT --> SCORE_INIT[Initiative Scorer:<br/>Score Initiatives by:<br/>- Impact<br/>- Feasibility<br/>- Cost]
+    
+    SCORE_INIT --> PRIORITIZE[Prioritize Initiatives<br/>by Score]
+    PRIORITIZE --> CREATE_TIMELINE[Create Implementation<br/>Timeline]
+    
+    CREATE_TIMELINE --> VALIDATE_PLAN[Validate Plan:<br/>Check feasibility<br/>against SBTi criteria]
+    
+    VALIDATE_PLAN --> FORMAT[AI Brain Formats<br/>Complete Plan]
+    FORMAT --> RESULT[Return Result:<br/>Net-zero plan with<br/>pathway, initiatives, timeline]
+    
+    style START fill:#e8f5e9
+    style UNDERSTAND fill:#e1f5ff
+    style GET_BASELINE fill:#e1f5ff
+    style CALC_PATHWAY fill:#fff4e1
+    style ANNUAL_TARGETS fill:#fff4e1
+    style SCORE_INIT fill:#fff4e1
+    style VALIDATE_PLAN fill:#fff4e1
+    style RESULT fill:#e8f5e9
+```
+
+**Workflow Steps Explained:**
+
+1. **User Query**: User asks to create a net-zero plan (e.g., "Create net-zero plan for 2050")
+2. **AI Understanding**: LLM extracts target year, baseline year, and requirements
+3. **Data Extraction**: Identifies plan requirements and constraints
+4. **Validation**: Checks if all required data is present
+5. **Clarification** (if needed): Asks user for missing information
+6. **Get Baseline**: Queries Carbon Agent to get current emissions as baseline
+7. **Calculate Pathway**: SBTi Calculator applies SBTi methodology to calculate reduction pathway
+8. **Annual Targets**: Calculates annual reduction targets from baseline to zero
+9. **Identify Initiatives**: Identifies potential decarbonization initiatives
+10. **Score Initiatives**: Scores each initiative by impact, feasibility, and cost
+11. **Prioritize**: Ranks initiatives by their scores
+12. **Create Timeline**: Creates implementation timeline for prioritized initiatives
+13. **Validate Plan**: Validates plan against SBTi criteria and feasibility
+14. **Response Formatting**: AI formats complete plan with pathway, initiatives, and timeline
+15. **Result**: Returns comprehensive net-zero plan
+
+### Combined Workflow: All Three Agents Working Together
+
+```mermaid
+flowchart TB
+    USER[User Query:<br/>Calculate footprint and<br/>compare to industry,<br/>then create net-zero plan] --> SUPERVISOR[Supervisor Agent<br/>Analyzes Query]
+    
+    SUPERVISOR --> TASK1[Task 1:<br/>Calculate Carbon Footprint]
+    SUPERVISOR --> TASK2[Task 2:<br/>Compare to Industry]
+    SUPERVISOR --> TASK3[Task 3:<br/>Create Net-Zero Plan]
+    
+    TASK1 --> CARBON[Carbon Agent<br/>Workflow]
+    TASK2 --> BENCH[Benchmarking Agent<br/>Workflow]
+    TASK3 --> NETZERO[Net Zero Agent<br/>Workflow]
+    
+    CARBON --> CARBON_CALC[GHG Calculator<br/>Calculates Emissions]
+    BENCH --> BENCH_CALC[Benchmark Calculator<br/>Compares Metrics]
+    NETZERO --> NETZERO_CALC[SBTi Calculator<br/>Creates Pathway]
+    
+    CARBON_CALC --> RESULT1[Result 1:<br/>10,000 tCO2e]
+    BENCH_CALC --> RESULT2[Result 2:<br/>25th percentile]
+    NETZERO_CALC --> RESULT3[Result 3:<br/>Net-zero plan]
+    
+    RESULT1 --> AGGREGATE[Supervisor Aggregates<br/>All Results]
+    RESULT2 --> AGGREGATE
+    RESULT3 --> AGGREGATE
+    
+    AGGREGATE --> FINAL[Final Response:<br/>Complete analysis with<br/>footprint, comparison,<br/>and net-zero plan]
+    
+    style USER fill:#e8f5e9
+    style SUPERVISOR fill:#ffeb3b
+    style CARBON fill:#e1f5ff
+    style BENCH fill:#e1f5ff
+    style NETZERO fill:#e1f5ff
+    style CARBON_CALC fill:#fff4e1
+    style BENCH_CALC fill:#fff4e1
+    style NETZERO_CALC fill:#fff4e1
+    style FINAL fill:#e8f5e9
+```
+
+**Combined Workflow Explanation:**
+
+When a user asks a complex question that requires multiple agents:
+
+1. **Supervisor Agent** receives the query and breaks it into tasks
+2. **Parallel Execution**: All three agents work simultaneously:
+   - **Carbon Agent** calculates emissions using GHG Calculator
+   - **Benchmarking Agent** compares metrics using Benchmark Calculator
+   - **Net Zero Agent** creates plan using SBTi Calculator (may use Carbon Agent results)
+3. **Results Collection**: Each agent returns its results
+4. **Aggregation**: Supervisor combines all results into a coherent response
+5. **Final Response**: User receives a complete analysis with all information integrated
+
+**Key Points:**
+- Each agent has its own specialized calculator
+- Agents can work independently or together
+- Supervisor coordinates complex multi-agent queries
+- Results are combined intelligently for comprehensive answers
 
 ---
 
@@ -256,29 +371,7 @@ Think of the Supervisor Agent as a **project manager** who:
 
 **Example**: "Calculate our carbon footprint and compare it to industry average"
 
-```mermaid
-graph TB
-    YOU[You: Complex Question] --> SUPERVISOR[Supervisor Agent<br/>Project Manager]
-    
-    SUPERVISOR --> TASK1[Task 1:<br/>Calculate Carbon Footprint]
-    SUPERVISOR --> TASK2[Task 2:<br/>Compare to Industry]
-    
-    TASK1 --> CARBON[Carbon Agent<br/>+ GHG Calculator]
-    TASK2 --> BENCH[Benchmarking Agent<br/>+ Benchmark Calculator]
-    
-    CARBON --> RESULT1[Result 1:<br/>10,000 tCO2e]
-    BENCH --> RESULT2[Result 2:<br/>25th percentile]
-    
-    RESULT1 --> SUPERVISOR
-    RESULT2 --> SUPERVISOR
-    
-    SUPERVISOR --> ANSWER[Combined Answer:<br/>Your footprint is 10,000 tCO2e,<br/>which ranks in the 25th percentile<br/>of your industry]
-    
-    style SUPERVISOR fill:#ffeb3b
-    style CARBON fill:#e1f5ff
-    style BENCH fill:#e1f5ff
-    style ANSWER fill:#e8f5e9
-```
+The Supervisor Agent breaks this into two tasks and assigns them to the Carbon Agent and Benchmarking Agent respectively. Results are then combined into a comprehensive answer.
 
 ---
 
@@ -297,25 +390,6 @@ graph TB
 - Emission factor databases
 - Benchmark data
 
-```mermaid
-graph LR
-    QUERY[Your Question] --> RAG[RAG System]
-    
-    RAG --> VECTOR[Vector Store<br/>Search Similar Content]
-    RAG --> KNOWLEDGE[Knowledge Base<br/>Your Documents]
-    
-    VECTOR --> RELEVANT[Relevant<br/>Information]
-    KNOWLEDGE --> RELEVANT
-    
-    RELEVANT --> LLM[LLM Uses Info<br/>to Answer]
-    LLM --> ANSWER[Accurate Answer<br/>Based on Your Data]
-    
-    style RAG fill:#e1f5ff
-    style VECTOR fill:#fff4e1
-    style LLM fill:#f3e5f5
-    style ANSWER fill:#e8f5e9
-```
-
 ### What is a Vector Store?
 
 **Simple Explanation**: A vector store is like a **smart filing cabinet** that:
@@ -327,25 +401,6 @@ graph LR
 - You ask: "What are Scope 3 emissions?"
 - Vector store finds: Documents about "value chain emissions", "indirect emissions", "supply chain"
 - Even if they don't contain the exact words "Scope 3"
-
-```mermaid
-graph TB
-    DOC1[Document 1:<br/>Scope 3 emissions<br/>are indirect...] --> VECTOR1[Vector 1]
-    DOC2[Document 2:<br/>Value chain emissions<br/>include...] --> VECTOR2[Vector 2]
-    DOC3[Document 3:<br/>Supply chain carbon<br/>footprint...] --> VECTOR3[Vector 3]
-    
-    VECTOR1 --> STORE[Vector Store<br/>Smart Filing System]
-    VECTOR2 --> STORE
-    VECTOR3 --> STORE
-    
-    QUERY[Query: Scope 3] --> SEARCH[Search Similar<br/>Vectors]
-    SEARCH --> STORE
-    STORE --> RESULTS[Finds All 3 Documents<br/>Even with Different Words]
-    
-    style STORE fill:#fff4e1
-    style SEARCH fill:#e1f5ff
-    style RESULTS fill:#e8f5e9
-```
 
 ### What is an LLM? (Large Language Model)
 
@@ -360,46 +415,13 @@ graph TB
 - Extracts: Activity = diesel, Amount = from your data
 - Explains: Results in clear, understandable language
 
-```mermaid
-graph LR
-    INPUT[Your Question<br/>Natural Language] --> LLM[LLM<br/>AI Brain]
-    
-    LLM --> UNDERSTAND[Understands<br/>Intent & Entities]
-    LLM --> EXTRACT[Extracts<br/>Structured Data]
-    LLM --> EXPLAIN[Explains<br/>Results Clearly]
-    
-    UNDERSTAND --> CALC[Calculator<br/>Does Math]
-    CALC --> EXPLAIN
-    EXPLAIN --> OUTPUT[Clear Answer<br/>in Plain Language]
-    
-    style LLM fill:#f3e5f5
-    style CALC fill:#fff4e1
-    style OUTPUT fill:#e8f5e9
-```
-
 ### How RAG + LLM + Calculator Work Together
 
-```mermaid
-graph TB
-    QUERY[Your Question:<br/>Calculate Scope 1 emissions] --> SUPERVISOR[Supervisor Agent]
-    
-    SUPERVISOR --> RAG[RAG System]
-    RAG --> VECTOR[Vector Store<br/>Finds Relevant Info]
-    VECTOR --> CONTEXT[Context:<br/>Emission factors,<br/>GHG Protocol rules]
-    
-    CONTEXT --> LLM[LLM<br/>Understands Query]
-    LLM --> EXTRACT[Extracts:<br/>Activity: Diesel<br/>Amount: 1000L]
-    
-    EXTRACT --> CALC[GHG Calculator<br/>Calculates: 2.68 tCO2e]
-    
-    CALC --> LLM2[LLM<br/>Formats Answer]
-    LLM2 --> ANSWER[Answer:<br/>Your Scope 1 emissions<br/>are 2.68 tCO2e...]
-    
-    style RAG fill:#e1f5ff
-    style LLM fill:#f3e5f5
-    style CALC fill:#fff4e1
-    style ANSWER fill:#e8f5e9
-```
+When you ask a question:
+1. **RAG System** searches your knowledge base using the vector store to find relevant information
+2. **LLM** uses this context to understand your query and extract structured data
+3. **Calculator** performs the mathematical calculations using the extracted data
+4. **LLM** formats the calculator results into a clear, understandable response
 
 ---
 
@@ -418,196 +440,771 @@ The Fitsol ESG platform uses a sophisticated multi-agent system where specialize
 
 ## Agent System Architecture
 
-### High-Level Agent Architecture
+The system consists of three specialized agents, each with its own calculator, coordinated by a Supervisor Agent. Each agent follows a similar workflow pattern: understanding the query, extracting data, validating, calculating using its specialized calculator, and formatting the response.
+
+### ML Architecture Box Diagram
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    FITSOL ESG ML ARCHITECTURE - BOX DIAGRAM                   ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          LAYER 1: API & ORCHESTRATION                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│      FastAPI Chat Endpoint       │  │    Query Orchestrator            │
+│                                  │  │                                  │
+│  • /chat/chat-with-llm/          │  │  • stream_user_query_smart()     │
+│  • Authentication                │  │  • Query classification          │
+│  • Request validation            │  │  • Route to agents               │
+│  • Context preparation           │  │  • Response streaming            │
+└──────────────┬───────────────────┘  └──────────────┬───────────────────┘
+               │                                      │
+               └──────────────────┬───────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          LAYER 2: RAG & CONTEXT                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│      Few-Shot Matcher            │  │    RAG System                    │
+│                                  │  │                                  │
+│  • Q&A pattern matching          │  │  • Semantic search               │
+│  • Instant answer lookup         │  │  • Vector store query            │
+│  • Bypass LLM for known queries  │  │  • Context retrieval             │
+│  • Score-based matching          │  │  • Document ranking              │
+└──────────────────────────────────┘  └──────────────┬───────────────────┘
+                                                    │
+┌──────────────────────────────────┐  ┌─────────────┴───────────────────┐
+│      Vector Store                │  │    Knowledge Base Manager       │
+│                                  │  │                                 │
+│  • FAISS vector database         │  │  • System KB management         │
+│  • Document embeddings           │  │  • User KB management           │
+│  • Similarity search             │  │  • File path resolution         │
+│  • Top-K retrieval               │  │  • Embedding generation         │
+└──────────────────────────────────┘  └─────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          LAYER 3: SUPERVISOR AGENT                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SUPERVISOR AGENT                                    │
+│                                                                             │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐   │
+│  │   Task Planner       │  │  Execution           │  │  Result          │   │
+│  │                      │  │  Coordinator         │  │  Aggregator      │   │
+│  │  • Query analysis    │  │  • Parallel exec     │  │  • Merge results │   │
+│  │  • Task breakdown    │  │  • Sequential exec   │  │  • Format output │   │
+│  │  • Dependency graph  │  │  • Agent routing     │  │  • Resolve confl │   │
+│  │  • Execution plan    │  │  • Error handling    │  │  • Final response│   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────┘   │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                    Agent Registry                                    │   │
+│  │  • Carbon Agent      • Benchmarking Agent    • Net Zero Agent        │   │
+│  │  • Capability lookup • Health monitoring      • Status tracking      │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+└──────────────────────┬──────────────────────────────────────────────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+        ▼              ▼              ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     LAYER 4: SPECIALIZED AGENTS                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CARBON ACCOUNTING AGENT                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐   │
+│  │  Extraction Handler  │  │  Calculation         │  │  Response        │   │
+│  │                      │  │  Orchestrator        │  │  Formatter       │   │
+│  │  • Activity extract  │  │  • GHG Calculator    │  │  • Format result │   │
+│  │  • Unit normalization│  │  • Scope classif     │  │  • Add explain   │   │
+│  │  • Scope detection   │  │  • Emission calc     │  │  • Citations     │   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────┘   │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                   GHG PROTOCOL CALCULATOR                            │   │
+│  │  • Emission factor DB    • Unit conversion      • GWP application    │   │
+│  │  • Scope classification  • Calculation engine   • Validation         │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Inherits: BaseUnifiedSemanticEngine | BaseSemanticValidator |              │
+│            BaseClarificationGenerator                                       │
+│  Implements: ActivityTypeRegistry | Carbon-specific validation rules        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    BENCHMARKING AGENT                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐   │
+│  │  Metric Extractor    │  │  Calculation Handler │  │  Response        │   │
+│  │                      │  │                      │  │  Formatter       │   │
+│  │  • Metric identify   │  │  • Benchmark Calc    │  │  • Format result │   │
+│  │  • Value extract     │  │  • Normalization     │  │  • Add insights  │   │
+│  │  • Sector detect     │  │  • Percentile calc   │  │  • Recommendations│  │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────┘   │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │              BENCHMARK STATISTICS CALCULATOR                         │   │
+│  │  • Benchmark DB         • Percentile calculation  • Normalization    │   │
+│  │  • Sector data          • Ranking algorithm       • Comparison       │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Inherits: BaseUnifiedSemanticEngine | BaseSemanticValidator |              │
+│            BaseClarificationGenerator                                       │
+│  Implements: MetricTypeRegistry | Sector-specific validation rules          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    NET ZERO PLANNING AGENT                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐   │
+│  │  Plan Extractor      │  │  Pathway Generator   │  │  Initiative      │   │
+│  │                      │  │                      │  │  Scorer          │   │
+│  │  • Goal extract      │  │  • SBTi Calculator   │  │  • Impact score  │   │
+│  │  • Target extract    │  │  • Annual targets    │  │  • Feasibility   │   │
+│  │  • Constraint detect │  │  • Timeline gen      │  │  • Cost analysis │   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────┘   │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                    SBTi PATHWAY CALCULATOR                           │   │
+│  │  • SBTi methodology   • Reduction pathways  • Target validation      │   │
+│  │  • Linear/exponential • Annual calculations  • Feasibility check     │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Inherits: BaseUnifiedSemanticEngine | BaseSemanticValidator |              │
+│            BaseClarificationGenerator                                       │
+│  Implements: ScenarioTypeRegistry | Pathway-specific validation rules       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     LAYER 5: SHARED INFRASTRUCTURE                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    ABSTRACT BASE CLASSES (Inheritance)                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐   │
+│  │ BaseUnifiedSemantic  │  │ BaseSemantic         │  │ BaseClarification│   │
+│  │ Engine               │  │ Validator            │  │ Generator        │   │
+│  │                      │  │                      │  │                  │   │
+│  │ • LLM integration    │  │ • Validation         │  │ • Gap analysis   │   │
+│  │ • Query understanding│  │   framework          │  │ • Question       │   │
+│  │ • Entity extraction  │  │ • Alignment checks   │  │   generation     │   │
+│  │ • Intent classification│  │ • Consistency rules │  │ • Context       │   │
+│  │ • Extensible interface│  │ • Relevance checks  │  │   formatting     │   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────┘   │
+│                                                                             │
+│  All agents inherit from these base classes and implement domain-specific   │
+│  logic (ActivityTypeRegistry, MetricTypeRegistry, ScenarioTypeRegistry)     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    INTER-AGENT COMMUNICATION SYSTEM                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐   │
+│  │   Message Queue      │  │   Shared State       │  │   Event Bus      │   │
+│  │                      │  │                      │  │                  │   │
+│  │ • Asynchronous       │  │ • TTL-based cache    │  │ • Publish/       │   │
+│  │   messaging          │  │ • Context sharing    │  │   Subscribe      │   │
+│  │ • Request/Response   │  │ • Result caching     │  │ • Event-driven   │   │
+│  │ • Direct agent comm  │  │ • Session state      │  │   coordination   │   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────┘   │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                    Learning Store                                    │   │
+│  │  • Pattern storage    • Outcome tracking  • Performance metrics      │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  SharedMemory API: request_data() | respond_to_request() | send_message()   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│   Learning Engine                │  │   Error Handler                  │
+│                                  │  │                                  │
+│  • Pattern analysis              │  │  • Error classification          │
+│  • Performance tracking          │  │  • Retry logic                   │
+│  • Model improvement             │  │  • Recovery strategies           │
+│  • Feedback integration          │  │  • Fallback mechanisms           │
+│  • Configuration updates         │  │  • Error logging                 │
+└──────────────────────────────────┘  └──────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     LAYER 6: LLM & EXTERNAL SERVICES                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│   Google Gemini LLM              │  │   LLM Client Manager             │
+│                                  │  │                                  │
+│  • Gemini 2.0 Flash              │  │  • Multi-provider support        │
+│  • Natural language processing   │  │  • API key management            │
+│  • Response generation           │  │  • Rate limiting                 │
+│  • Tool calling                  │  │  • Error handling                │
+│  • Streaming support             │  │  • Token tracking                │
+└──────────────────────────────────┘  └──────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     LAYER 7: DATA STORAGE                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│   MongoDB                        │  │   SQLite                         │
+│                                  │  │                                  │
+│  • Chat history                  │  │  • Emission factors              │
+│  • User data                     │  │  • Benchmark data                │
+│  • Knowledge sources             │  │  • Conversion factors            │
+│  • Message storage               │  │  • Scope classifications         │
+│  • File metadata                 │  │  • Reference data                │
+└──────────────────────────────────┘  └──────────────────────────────────┘
+
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│   Vector Store (FAISS)           │  │   File Storage                   │
+│                                  │  │                                  │
+│  • Document embeddings           │  │  • Uploaded files                │
+│  • Semantic search index         │  │  • Processed documents           │
+│  • Similarity calculations       │  │  • Knowledge base files          │
+│  • Top-K retrieval               │  │  • Temporary files               │
+└──────────────────────────────────┘  └──────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     DATA FLOW CONNECTIONS                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    API Endpoint
+         │
+         ├─→ Query Orchestrator
+         │        │
+         │        ├─→ Few-Shot Matcher ──→ [Instant Response]
+         │        │
+         │        └─→ RAG System
+         │                 │
+         │                 ├─→ Vector Store ──→ Context
+         │                 │
+         │                 └─→ Knowledge Base ──→ Documents
+         │
+         └─→ Supervisor Agent
+                  │
+                  ├─→ Task Planner ──→ Execution Plan
+                  │
+                  ├─→ Execution Coordinator
+                  │        │
+                  │        ├─→ Carbon Agent ──→ GHG Calculator ──→ Result
+                  │        │
+                  │        ├─→ Benchmarking Agent ──→ Benchmark Calc ──→ Result
+                  │        │
+                  │        └─→ Net Zero Agent ──→ SBTi Calculator ──→ Result
+                  │
+                  └─→ Result Aggregator ──→ Final Response ──→ Stream to User
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     ARCHITECTURE PATTERNS                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Inheritance Hierarchy:
+    BaseUnifiedSemanticEngine (Abstract)
+        ├─→ CarbonAgent.UnifiedSemanticEngine
+        ├─→ BenchmarkingAgent.UnifiedSemanticEngine
+        └─→ NetZeroAgent.UnifiedSemanticEngine
+    
+    BaseSemanticValidator (Abstract)
+        ├─→ CarbonAgent.SemanticValidator (ActivityTypeRegistry)
+        ├─→ BenchmarkingAgent.SemanticValidator (MetricTypeRegistry)
+        └─→ NetZeroAgent.SemanticValidator (ScenarioTypeRegistry)
+    
+    BaseClarificationGenerator (Abstract)
+        ├─→ CarbonAgent.IntelligentClarificationGenerator
+        ├─→ BenchmarkingAgent.IntelligentClarificationGenerator
+        └─→ NetZeroAgent.IntelligentClarificationGenerator
+
+Agent-Specific Components (No Inheritance):
+    ├─→ Domain Calculators (GHG, Benchmark, SBTi)
+    ├─→ Extraction Handlers (Activity, Metric, Plan)
+    ├─→ Response Formatters (Domain-specific formatting)
+    └─→ Workflow Orchestrators (Agent-specific workflows)
+
+Inter-Agent Communication (SharedMemory):
+    ├─→ Message Queue: Asynchronous request/response messaging
+    ├─→ Shared State: TTL-based context and result caching
+    ├─→ Event Bus: Publish/subscribe for coordination
+    ├─→ Learning Store: Shared pattern and outcome storage
+    └─→ API Methods: request_data() | respond_to_request() | send_message()
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     KEY FEATURES                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+✓ Multi-Agent System with Supervisor Coordination
+✓ RAG (Retrieval Augmented Generation) for Context
+✓ Few-Shot Learning for Instant Answers
+✓ Specialized Calculators per Domain
+✓ Intelligent Clarification System
+✓ Streaming Responses for Real-time UX
+✓ Error Handling & Recovery
+✓ Continuous Learning & Improvement
+✓ Multi-provider LLM Support
+✓ Vector-based Semantic Search
+```
+
+**Architecture Design Principles:**
+
+**1. Inheritance-Based Modularity:**
+- Abstract base classes define contracts in `ml/agents/common/`
+- Agents implement domain-specific logic through inheritance
+- Reduces code duplication while enabling specialization
+- Follows Open/Closed Principle (open for extension, closed for modification)
+
+**2. Inter-Agent Communication:**
+- **Message Queue**: Asynchronous request/response pattern for data exchange
+- **Shared State**: TTL-based caching for context and intermediate results
+- **Event Bus**: Publish/subscribe pattern for coordination and notifications
+- **Learning Store**: Centralized pattern storage for continuous improvement
+
+**3. Supervisor Coordination:**
+- Task decomposition and dependency resolution
+- Parallel and sequential execution orchestration
+- Result aggregation and conflict resolution
+- Health monitoring and failover handling
+
+**4. Domain Specialization:**
+- Each agent implements domain-specific type registries
+- Calculators are agent-specific (no inheritance)
+- Extraction handlers tailored to domain entities
+- Response formatters customized for domain context
+
+### ML Architecture Swimlane Diagram
 
 ```mermaid
 graph TB
-    subgraph "User Interface"
-        USER[User Query]
+    subgraph API_LANE["🔷 API & ORCHESTRATION LANE"]
+        API[FastAPI Chat Endpoint<br/>/chat/chat-with-llm/]
+        AUTH[Authentication<br/>Token Validation]
+        REQ_VAL[Request Validation<br/>Input Sanitization]
+        CONTEXT_PREP[Context Preparation<br/>Session Management]
+        ORCH[Query Orchestrator<br/>stream_user_query_smart]
+        API --> AUTH
+        AUTH --> REQ_VAL
+        REQ_VAL --> CONTEXT_PREP
+        CONTEXT_PREP --> ORCH
     end
     
-    subgraph "Orchestration Layer"
-        SUPERVISOR[Supervisor Agent]
-        PLANNER[Task Planner]
-        COORDINATOR[Execution Coordinator]
-        AGGREGATOR[Result Aggregator]
+    subgraph RAG_LANE["🔷 RAG & CONTEXT LANE"]
+        FEWSHOT[Few-Shot Matcher<br/>Q&A Pattern Matching]
+        INSTANT_ANS[Instant Answer Lookup<br/>Bypass LLM for Known Queries]
+        RAG[RAG System<br/>Semantic Search]
+        SEM_SEARCH[Semantic Search Engine<br/>Context Retrieval]
+        DOC_RANK[Document Ranking<br/>Relevance Scoring]
+        VECTOR[Vector Store<br/>FAISS Database]
+        EMBED[Document Embeddings<br/>Vector Generation]
+        SIM_SEARCH[Similarity Search<br/>Top-K Retrieval]
+        KB[Knowledge Base Manager<br/>System & User KB]
+        KB_MGMT[KB Management<br/>File Path Resolution]
+        EMBED_GEN[Embedding Generation<br/>Text Processing]
+        ORCH --> FEWSHOT
+        FEWSHOT --> INSTANT_ANS
+        ORCH --> RAG
+        RAG --> SEM_SEARCH
+        SEM_SEARCH --> DOC_RANK
+        RAG --> VECTOR
+        VECTOR --> EMBED
+        VECTOR --> SIM_SEARCH
+        RAG --> KB
+        KB --> KB_MGMT
+        KB --> EMBED_GEN
     end
     
-    subgraph "Agent Registry"
-        REGISTRY[Agent Registry]
-        MEMORY[Shared Memory]
+    subgraph SUPERVISOR_LANE["🔷 SUPERVISOR AGENT LANE"]
+        TASK[Task Planner<br/>Query Analysis & Breakdown]
+        QUERY_ANALYSIS[Query Analysis<br/>Intent Understanding]
+        TASK_BREAKDOWN[Task Breakdown<br/>Dependency Resolution]
+        DEP_GRAPH[Dependency Graph<br/>Execution Planning]
+        EXEC[Execution Coordinator<br/>Parallel/Sequential Exec]
+        PARALLEL[Parallel Execution<br/>Concurrent Tasks]
+        SEQUENTIAL[Sequential Execution<br/>Dependent Tasks]
+        AGENT_ROUTING[Agent Routing<br/>Task Assignment]
+        ERROR_HANDLING_SUP[Error Handling<br/>Recovery & Retry]
+        REGISTRY[Agent Registry<br/>Capability Lookup]
+        CAP_LOOKUP[Capability Lookup<br/>Agent Selection]
+        HEALTH_MON[Health Monitoring<br/>Status Tracking]
+        AGG[Result Aggregator<br/>Merge & Format Results]
+        MERGE_RESULTS[Merge Results<br/>Conflict Resolution]
+        FORMAT_OUTPUT[Format Output<br/>Response Generation]
+        RAG --> TASK
+        TASK --> QUERY_ANALYSIS
+        QUERY_ANALYSIS --> TASK_BREAKDOWN
+        TASK_BREAKDOWN --> DEP_GRAPH
+        DEP_GRAPH --> EXEC
+        EXEC --> PARALLEL
+        EXEC --> SEQUENTIAL
+        EXEC --> AGENT_ROUTING
+        EXEC --> ERROR_HANDLING_SUP
+        EXEC --> REGISTRY
+        REGISTRY --> CAP_LOOKUP
+        REGISTRY --> HEALTH_MON
+        EXEC --> AGG
+        AGG --> MERGE_RESULTS
+        MERGE_RESULTS --> FORMAT_OUTPUT
     end
     
-    subgraph "Specialized Agents"
-        CARBON[Carbon Accounting Agent]
-        BENCH[Benchmarking Agent]
-        NETZERO[Net Zero Agent]
+    subgraph CARBON_LANE["🔷 CARBON ACCOUNTING AGENT LANE"]
+        C_EXT[Extraction Handler<br/>Activity Extraction]
+        ACTIVITY_EXT[Activity Extraction<br/>Entity Identification]
+        UNIT_NORM[Unit Normalization<br/>Conversion Handling]
+        SCOPE_DETECT[Scope Detection<br/>Classification]
+        C_CALC[Calculation Orchestrator<br/>GHG Calculator]
+        SCOPE_CLASS[Scope Classification<br/>1, 2, 3 Assignment]
+        EMISSION_CALC[Emission Calculation<br/>Factor Application]
+        C_RESP[Response Formatter<br/>Format & Explain]
+        FORMAT_RESULT[Format Result<br/>Structured Output]
+        ADD_EXPLAIN[Add Explanation<br/>Context & Citations]
+        GHG[GHG Protocol Calculator<br/>Emission Factors & GWP]
+        EF_DB[Emission Factor DB<br/>Verified Sources]
+        UNIT_CONV[Unit Conversion<br/>Standardization]
+        GWP_APPLY[GWP Application<br/>CO2e Calculation]
+        VALIDATION_C[Validation<br/>GHG Protocol Compliance]
+        REGISTRY -->|Route| C_EXT
+        C_EXT --> ACTIVITY_EXT
+        C_EXT --> UNIT_NORM
+        C_EXT --> SCOPE_DETECT
+        C_EXT --> C_CALC
+        C_CALC --> SCOPE_CLASS
+        C_CALC --> EMISSION_CALC
+        C_CALC --> GHG
+        GHG --> EF_DB
+        GHG --> UNIT_CONV
+        GHG --> GWP_APPLY
+        GHG --> VALIDATION_C
+        GHG --> C_RESP
+        C_RESP --> FORMAT_RESULT
+        C_RESP --> ADD_EXPLAIN
+        C_RESP --> AGG
+        C_EXT -.->|Uses| BASE_SEMANTIC
+        C_EXT -.->|Uses| BASE_VALIDATOR
+        C_EXT -.->|Uses| BASE_CLARIFY
     end
     
-    subgraph "Common Infrastructure"
-        SEMANTIC[Unified Semantic Engine]
-        CLARIFY[Intelligent Clarification]
-        VALIDATE[Semantic Validator]
-        LEARN[Learning Engine]
+    subgraph BENCH_LANE["🔷 BENCHMARKING AGENT LANE"]
+        B_EXT[Metric Extractor<br/>Metric Identification]
+        METRIC_ID[Metric Identification<br/>Type Classification]
+        VALUE_EXT[Value Extraction<br/>Data Parsing]
+        SECTOR_DETECT[Sector Detection<br/>Industry Classification]
+        B_CALC[Calculation Handler<br/>Benchmark Calculator]
+        NORMALIZE[Normalization<br/>Revenue/Employee Scaling]
+        PERCENTILE[Percentile Calculation<br/>Ranking Algorithm]
+        B_RESP[Response Formatter<br/>Insights & Recommendations]
+        FORMAT_BENCH[Format Result<br/>Comparison Tables]
+        ADD_INSIGHTS[Add Insights<br/>Gap Analysis]
+        RECOMMEND[Recommendations<br/>Actionable Insights]
+        BENCH_CALC[Benchmark Statistics Calculator<br/>Percentiles & Rankings]
+        BENCH_DB[Benchmark Database<br/>Industry Data]
+        SECTOR_DATA[Sector Data<br/>Peer Comparison]
+        RANKING[Ranking Algorithm<br/>Percentile Calculation]
+        COMPARE[Comparison Engine<br/>Relative Performance]
+        REGISTRY -->|Route| B_EXT
+        B_EXT --> METRIC_ID
+        B_EXT --> VALUE_EXT
+        B_EXT --> SECTOR_DETECT
+        B_EXT --> B_CALC
+        B_CALC --> NORMALIZE
+        B_CALC --> PERCENTILE
+        B_CALC --> BENCH_CALC
+        BENCH_CALC --> BENCH_DB
+        BENCH_CALC --> SECTOR_DATA
+        BENCH_CALC --> RANKING
+        BENCH_CALC --> COMPARE
+        BENCH_CALC --> B_RESP
+        B_RESP --> FORMAT_BENCH
+        B_RESP --> ADD_INSIGHTS
+        B_RESP --> RECOMMEND
+        B_RESP --> AGG
+        B_EXT -.->|Uses| BASE_SEMANTIC
+        B_EXT -.->|Uses| BASE_VALIDATOR
+        B_EXT -.->|Uses| BASE_CLARIFY
     end
     
-    subgraph "External Services"
-        LLM[Gemini LLM]
-        RAG[RAG System]
-        DB[(Databases)]
+    subgraph NETZERO_LANE["🔷 NET ZERO PLANNING AGENT LANE"]
+        N_EXT[Plan Extractor<br/>Goal & Target Extraction]
+        GOAL_EXT[Goal Extraction<br/>Net Zero Objectives]
+        TARGET_EXT[Target Extraction<br/>Reduction Goals]
+        CONSTRAINT_DETECT[Constraint Detection<br/>Limitations & Requirements]
+        N_PATH[Pathway Generator<br/>SBTi Calculator]
+        ANNUAL_TARGETS[Annual Targets<br/>Yearly Milestones]
+        TIMELINE_GEN[Timeline Generation<br/>Implementation Schedule]
+        N_SCORE[Initiative Scorer<br/>Impact & Feasibility]
+        IMPACT_SCORE[Impact Score<br/>Emission Reduction]
+        FEASIBILITY[Feasibility Analysis<br/>Implementation Viability]
+        COST_ANALYSIS[Cost Analysis<br/>ROI Calculation]
+        N_RESP[Response Formatter<br/>Complete Plan]
+        FORMAT_PLAN[Format Plan<br/>Structured Pathway]
+        ADD_TIMELINE[Add Timeline<br/>Implementation Roadmap]
+        SBTI[SBTi Pathway Calculator<br/>Reduction Pathways]
+        SBTI_METHOD[SBTi Methodology<br/>Science-Based Approach]
+        REDUCTION_PATH[Reduction Pathways<br/>Linear/Exponential]
+        TARGET_VALID[Target Validation<br/>SBTi Compliance]
+        FEASIBILITY_CHECK[Feasibility Check<br/>Plan Viability]
+        REGISTRY -->|Route| N_EXT
+        N_EXT --> GOAL_EXT
+        N_EXT --> TARGET_EXT
+        N_EXT --> CONSTRAINT_DETECT
+        N_EXT --> N_PATH
+        N_PATH --> ANNUAL_TARGETS
+        N_PATH --> TIMELINE_GEN
+        N_PATH --> SBTI
+        SBTI --> SBTI_METHOD
+        SBTI --> REDUCTION_PATH
+        SBTI --> TARGET_VALID
+        SBTI --> FEASIBILITY_CHECK
+        SBTI --> N_SCORE
+        N_SCORE --> IMPACT_SCORE
+        N_SCORE --> FEASIBILITY
+        N_SCORE --> COST_ANALYSIS
+        N_SCORE --> N_RESP
+        N_RESP --> FORMAT_PLAN
+        N_RESP --> ADD_TIMELINE
+        N_RESP --> AGG
+        N_EXT -.->|Uses| BASE_SEMANTIC
+        N_EXT -.->|Uses| BASE_VALIDATOR
+        N_EXT -.->|Uses| BASE_CLARIFY
     end
     
-    USER --> SUPERVISOR
-    SUPERVISOR --> PLANNER
-    PLANNER --> REGISTRY
-    REGISTRY --> CARBON
-    REGISTRY --> BENCH
-    REGISTRY --> NETZERO
-    SUPERVISOR --> COORDINATOR
-    COORDINATOR --> MEMORY
-    CARBON --> SEMANTIC
-    BENCH --> SEMANTIC
-    NETZERO --> SEMANTIC
-    SEMANTIC --> CLARIFY
-    SEMANTIC --> VALIDATE
-    CLARIFY --> LEARN
-    SEMANTIC --> LLM
-    SEMANTIC --> RAG
-    RAG --> DB
-    CARBON --> AGGREGATOR
-    BENCH --> AGGREGATOR
-    NETZERO --> AGGREGATOR
-    AGGREGATOR --> USER
+    subgraph SHARED_LANE["🔷 SHARED INFRASTRUCTURE LANE"]
+        BASE_SEMANTIC[BaseUnifiedSemanticEngine<br/>Abstract Base Class]
+        LLM_INTEGRATION[LLM Integration<br/>Gemini Client]
+        QUERY_UNDERSTAND[Query Understanding<br/>Intent Classification]
+        ENTITY_EXT[Entity Extraction<br/>Data Parsing]
+        INTENT_CLASS[Intent Classification<br/>Task Routing]
+        BASE_VALIDATOR[BaseSemanticValidator<br/>Abstract Base Class]
+        VALID_FRAMEWORK[Validation Framework<br/>Rule Engine]
+        ALIGNMENT_CHECKS[Alignment Checks<br/>Data Consistency]
+        CONSISTENCY[Consistency Rules<br/>Validation Logic]
+        RELEVANCE[Relevance Checks<br/>Data Quality]
+        BASE_CLARIFY[BaseClarificationGenerator<br/>Abstract Base Class]
+        GAP_ANALYSIS[Gap Analysis<br/>Missing Data Detection]
+        QUESTION_GEN[Question Generation<br/>Dynamic Clarification]
+        CONTEXT_HANDLING[Context Handling<br/>User Preferences]
+        SHARED_MEM[SharedMemory System<br/>Inter-Agent Communication]
+        MSG_QUEUE[Message Queue<br/>Async Request/Response]
+        ASYNC_MSG[Asynchronous Messaging<br/>Non-blocking Communication]
+        REQ_RESP[Request/Response<br/>Agent Data Exchange]
+        DIRECT_MSG[Direct Messaging<br/>Agent-to-Agent]
+        SHARED_STATE[Shared State<br/>TTL-based Cache]
+        TTL_CACHE[TTL-based Cache<br/>Automatic Expiration]
+        CONTEXT_SHARE[Context Sharing<br/>Session State]
+        RESULT_CACHE[Result Caching<br/>Intermediate Storage]
+        SESSION_STATE[Session State<br/>User Context]
+        EVENT_BUS[Event Bus<br/>Publish/Subscribe]
+        PUB_SUB[Publish/Subscribe<br/>Event Coordination]
+        EVENT_DRIVEN[Event-driven<br/>Reactive Architecture]
+        COORDINATION[Coordination<br/>Multi-Agent Sync]
+        LEARN_STORE[Learning Store<br/>Pattern Storage]
+        PATTERN_STORAGE[Pattern Storage<br/>Query Patterns]
+        OUTCOME_TRACK[Outcome Tracking<br/>Success Metrics]
+        PERF_METRICS[Performance Metrics<br/>Quality Indicators]
+        LEARN[Learning Engine<br/>Pattern Analysis]
+        PATTERN_ANALYSIS[Pattern Analysis<br/>Query Classification]
+        PERF_TRACK[Performance Tracking<br/>Quality Monitoring]
+        MODEL_IMPROVE[Model Improvement<br/>Continuous Learning]
+        FEEDBACK_INT[Feedback Integration<br/>User Corrections]
+        CONFIG_UPDATE[Configuration Updates<br/>Parameter Tuning]
+        ERROR_HANDLER[Error Handler<br/>Recovery Strategies]
+        ERROR_CLASS[Error Classification<br/>Type Detection]
+        RETRY_LOGIC[Retry Logic<br/>Automatic Recovery]
+        RECOVERY[Recovery Strategies<br/>Fallback Mechanisms]
+        FALLBACK[Fallback Mechanisms<br/>Alternative Paths]
+        ERROR_LOG[Error Logging<br/>Diagnostic Data]
+        BASE_SEMANTIC --> LLM_INTEGRATION
+        BASE_SEMANTIC --> QUERY_UNDERSTAND
+        BASE_SEMANTIC --> ENTITY_EXT
+        BASE_SEMANTIC --> INTENT_CLASS
+        BASE_VALIDATOR --> VALID_FRAMEWORK
+        BASE_VALIDATOR --> ALIGNMENT_CHECKS
+        BASE_VALIDATOR --> CONSISTENCY
+        BASE_VALIDATOR --> RELEVANCE
+        BASE_CLARIFY --> GAP_ANALYSIS
+        BASE_CLARIFY --> QUESTION_GEN
+        BASE_CLARIFY --> CONTEXT_HANDLING
+        SHARED_MEM --> MSG_QUEUE
+        MSG_QUEUE --> ASYNC_MSG
+        MSG_QUEUE --> REQ_RESP
+        MSG_QUEUE --> DIRECT_MSG
+        SHARED_MEM --> SHARED_STATE
+        SHARED_STATE --> TTL_CACHE
+        SHARED_STATE --> CONTEXT_SHARE
+        SHARED_STATE --> RESULT_CACHE
+        SHARED_STATE --> SESSION_STATE
+        SHARED_MEM --> EVENT_BUS
+        EVENT_BUS --> PUB_SUB
+        EVENT_BUS --> EVENT_DRIVEN
+        EVENT_BUS --> COORDINATION
+        SHARED_MEM --> LEARN_STORE
+        LEARN_STORE --> PATTERN_STORAGE
+        LEARN_STORE --> OUTCOME_TRACK
+        LEARN_STORE --> PERF_METRICS
+        LEARN --> PATTERN_ANALYSIS
+        LEARN --> PERF_TRACK
+        LEARN --> MODEL_IMPROVE
+        LEARN --> FEEDBACK_INT
+        LEARN --> CONFIG_UPDATE
+        ERROR_HANDLER --> ERROR_CLASS
+        ERROR_HANDLER --> RETRY_LOGIC
+        ERROR_HANDLER --> RECOVERY
+        ERROR_HANDLER --> FALLBACK
+        ERROR_HANDLER --> ERROR_LOG
+        C_EXT -->|Communicate| SHARED_MEM
+        B_EXT -->|Communicate| SHARED_MEM
+        N_EXT -->|Communicate| SHARED_MEM
+    end
+    
+    subgraph LLM_LANE["🔷 LLM & EXTERNAL SERVICES LANE"]
+        GEMINI[Google Gemini LLM<br/>Gemini 2.0 Flash]
+        NLP[Natural Language Processing<br/>Query Understanding]
+        RESPONSE_GEN[Response Generation<br/>Text Synthesis]
+        TOOL_CALLING[Tool Calling<br/>Function Execution]
+        STREAMING[Streaming Support<br/>Real-time Responses]
+        LLM_MGR[LLM Client Manager<br/>API Key & Rate Limiting]
+        MULTI_PROVIDER[Multi-provider Support<br/>Provider Abstraction]
+        API_KEY_MGMT[API Key Management<br/>Secure Storage]
+        RATE_LIMIT[Rate Limiting<br/>Request Throttling]
+        ERROR_HANDLE_LLM[Error Handling<br/>API Failures]
+        TOKEN_TRACK[Token Tracking<br/>Usage Monitoring]
+        BASE_SEMANTIC --> GEMINI
+        RAG --> GEMINI
+        GEMINI --> NLP
+        GEMINI --> RESPONSE_GEN
+        GEMINI --> TOOL_CALLING
+        GEMINI --> STREAMING
+        GEMINI --> LLM_MGR
+        LLM_MGR --> MULTI_PROVIDER
+        LLM_MGR --> API_KEY_MGMT
+        LLM_MGR --> RATE_LIMIT
+        LLM_MGR --> ERROR_HANDLE_LLM
+        LLM_MGR --> TOKEN_TRACK
+    end
+    
+    subgraph DATA_LANE["🔷 DATA STORAGE LANE"]
+        MONGO[(MongoDB<br/>Chat History & User Data)]
+        CHAT_HIST[Chat History<br/>Conversation Storage]
+        USER_DATA[User Data<br/>Profile & Preferences]
+        KNOWLEDGE_SRC[Knowledge Sources<br/>Document Metadata]
+        MSG_STORAGE[Message Storage<br/>Query & Response]
+        FILE_META[File Metadata<br/>Upload Tracking]
+        SQLITE[(SQLite<br/>Emission Factors & Benchmarks)]
+        EMISSION_FACTORS[Emission Factors<br/>GHG Protocol Data]
+        BENCHMARK_DATA[Benchmark Data<br/>Industry Statistics]
+        CONV_FACTORS[Conversion Factors<br/>Unit Conversions]
+        SCOPE_CLASS_DB[Scope Classifications<br/>Activity Mapping]
+        REF_DATA[Reference Data<br/>Standards & Guidelines]
+        FAISS_STORE[(FAISS Vector Store<br/>Document Embeddings)]
+        DOC_EMBED[Document Embeddings<br/>Vector Representations]
+        SEM_INDEX[Semantic Search Index<br/>Similarity Search]
+        SIM_CALC[Similarity Calculations<br/>Cosine Distance]
+        TOP_K[Top-K Retrieval<br/>Relevant Documents]
+        FILE_STORE[File Storage<br/>Uploaded & Processed Files]
+        UPLOADED[Uploaded Files<br/>User Documents]
+        PROCESSED[Processed Documents<br/>Parsed Content]
+        KB_FILES[Knowledge Base Files<br/>System Documents]
+        TEMP_FILES[Temporary Files<br/>Processing Cache]
+        GHG --> SQLITE
+        BENCH_CALC --> SQLITE
+        SBTI --> SQLITE
+        SQLITE --> EMISSION_FACTORS
+        SQLITE --> BENCHMARK_DATA
+        SQLITE --> CONV_FACTORS
+        SQLITE --> SCOPE_CLASS_DB
+        SQLITE --> REF_DATA
+        C_RESP --> MONGO
+        B_RESP --> MONGO
+        N_RESP --> MONGO
+        MONGO --> CHAT_HIST
+        MONGO --> USER_DATA
+        MONGO --> KNOWLEDGE_SRC
+        MONGO --> MSG_STORAGE
+        MONGO --> FILE_META
+        VECTOR --> FAISS_STORE
+        FAISS_STORE --> DOC_EMBED
+        FAISS_STORE --> SEM_INDEX
+        FAISS_STORE --> SIM_CALC
+        FAISS_STORE --> TOP_K
+        KB --> FILE_STORE
+        FILE_STORE --> UPLOADED
+        FILE_STORE --> PROCESSED
+        FILE_STORE --> KB_FILES
+        FILE_STORE --> TEMP_FILES
+    end
+    
+    FEWSHOT -->|Instant Answer| USER[👤 User Response]
+    AGG -->|Final Response| USER
+    
+    style API_LANE fill:#e3f2fd
+    style RAG_LANE fill:#f3e5f5
+    style SUPERVISOR_LANE fill:#fff9c4
+    style CARBON_LANE fill:#e8f5e9
+    style BENCH_LANE fill:#e1f5fe
+    style NETZERO_LANE fill:#fce4ec
+    style SHARED_LANE fill:#fff3e0
+    style LLM_LANE fill:#f1f8e9
+    style DATA_LANE fill:#eceff1
+    style USER fill:#ffebee
 ```
 
-### Agent Class Hierarchy
+**Swimlane Diagram Explanation:**
 
-```mermaid
-classDiagram
-    class BaseAgent {
-        <<abstract>>
-        +agent_name: str
-        +agent_id: str
-        +status: AgentStatus
-        +memory: dict
-        +plan(task) List[Dict]
-        +execute_step(step, context) TaskResult
-        +validate(result) bool
-        +correct(error) TaskResult
-    }
-    
-    class SupervisorAgent {
-        +task_planner: TaskPlanner
-        +execution_coordinator: ExecutionCoordinator
-        +result_aggregator: ResultAggregator
-        +process_query(query) Dict
-    }
-    
-    class CarbonAccountingAgent {
-        +unified_semantic_engine: UnifiedSemanticEngine
-        +clarification_orchestrator: ClarificationOrchestrator
-        +extraction_handler: ExtractionHandler
-        +calculation_orchestrator: CalculationOrchestrator
-        +process_query(query) Dict
-    }
-    
-    class BenchmarkingAgent {
-        +unified_semantic_engine: UnifiedSemanticEngine
-        +clarification_orchestrator: ClarificationOrchestrator
-        +extraction_handler: ExtractionHandler
-        +calculator: BenchmarkStatisticsCalculator
-        +process_query(query) Dict
-    }
-    
-    class NetZeroPlanner {
-        +unified_semantic_engine: UnifiedSemanticEngine
-        +clarification_orchestrator: ClarificationOrchestrator
-        +plan_generator: NetZeroPlanGenerator
-        +pathway_calculator: SBTIPathwayCalculator
-        +process_query(query) Dict
-    }
-    
-    BaseAgent <|-- SupervisorAgent
-    BaseAgent <|-- CarbonAccountingAgent
-    BaseAgent <|-- BenchmarkingAgent
-    BaseAgent <|-- NetZeroPlanner
-```
+This diagram shows the ML architecture organized into **9 parallel lanes**, each representing a major component layer:
+
+1. **API & Orchestration Lane** - Entry point for all queries
+2. **RAG & Context Lane** - Context retrieval and instant answers
+3. **Supervisor Agent Lane** - Central coordination and task management
+4. **Carbon Agent Lane** - Complete carbon accounting workflow
+5. **Benchmarking Agent Lane** - Complete benchmarking workflow
+6. **Net Zero Agent Lane** - Complete net-zero planning workflow
+7. **Shared Infrastructure Lane** - Abstract base classes and inter-agent communication
+   - **BaseUnifiedSemanticEngine** - Abstract base for semantic understanding (inherited by agents)
+   - **BaseSemanticValidator** - Abstract base for validation (inherited by agents)
+   - **BaseClarificationGenerator** - Abstract base for clarification (inherited by agents)
+   - **SharedMemory System** - Inter-agent communication infrastructure
+     - **Message Queue**: Asynchronous request/response messaging
+     - **Shared State**: TTL-based context and result caching
+     - **Event Bus**: Publish/subscribe pattern for coordination
+     - **Learning Store**: Centralized pattern and outcome storage
+8. **LLM & External Services Lane** - External AI services
+9. **Data Storage Lane** - All data persistence layers
+
+**Key Features:**
+- Each lane shows the complete workflow for that component
+- Arrows show data flow between lanes
+- **Dotted lines (---)** show inheritance/extends relationships (agents extend base classes)
+- **Solid lines (--)** show communication and data flow
+- **SharedMemory** enables agents to communicate with each other
+- Colors differentiate each lane for easy identification
+- Parallel execution is visible when multiple agents work simultaneously
+
+**Architecture Pattern:**
+- **Shared Base Classes**: All agents extend common abstract base classes
+- **Agent-Specific Implementations**: Each agent customizes base classes for its domain
+- **SharedMemory Communication**: Agents can request data from each other via SharedMemory
+- **Supervisor Coordination**: Supervisor Agent orchestrates multi-agent tasks
 
 ---
 
 ## Supervisor Agent
 
-The Supervisor Agent is the central orchestrator that coordinates all other agents. It handles query understanding, task decomposition, agent selection, and result aggregation.
-
-### Supervisor Agent Architecture
-
-```mermaid
-graph TB
-    QUERY[User Query] --> UNDERSTAND[Query Understanding]
-    UNDERSTAND --> DECOMPOSE[Task Decomposition]
-    DECOMPOSE --> PLAN[Execution Plan]
-    PLAN --> REGISTRY[Agent Registry Lookup]
-    REGISTRY --> SELECT[Agent Selection]
-    SELECT --> COORDINATE[Coordinate Execution]
-    COORDINATE --> PARALLEL{Parallel Tasks?}
-    PARALLEL -->|Yes| PARALLEL_EXEC[Execute in Parallel]
-    PARALLEL -->|No| SEQUENTIAL_EXEC[Execute Sequentially]
-    PARALLEL_EXEC --> COLLECT[Collect Results]
-    SEQUENTIAL_EXEC --> COLLECT
-    COLLECT --> AGGREGATE[Aggregate Results]
-    AGGREGATE --> FORMAT[Format Response]
-    FORMAT --> RESPONSE[Return to User]
-```
-
-### Supervisor Agent Processing Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Supervisor
-    participant Planner
-    participant Registry
-    participant Agent1
-    participant Agent2
-    participant Aggregator
-    
-    User->>Supervisor: Query
-    Supervisor->>Planner: Decompose Query
-    Planner->>Planner: Identify Tasks
-    Planner->>Planner: Determine Dependencies
-    Planner-->>Supervisor: Execution Plan
-    Supervisor->>Registry: Get Available Agents
-    Registry-->>Supervisor: Agent Capabilities
-    Supervisor->>Supervisor: Match Tasks to Agents
-    Supervisor->>Agent1: Execute Task 1
-    Supervisor->>Agent2: Execute Task 2 (Parallel)
-    Agent1->>Agent1: Process Task
-    Agent2->>Agent2: Process Task
-    Agent1-->>Supervisor: Result 1
-    Agent2-->>Supervisor: Result 2
-    Supervisor->>Aggregator: Aggregate Results
-    Aggregator->>Aggregator: Resolve Conflicts
-    Aggregator->>Aggregator: Format Response
-    Aggregator-->>Supervisor: Final Response
-    Supervisor-->>User: Complete Answer
-```
-
-### Task Planning Process
-
-```mermaid
-flowchart TD
-    QUERY[Raw Query] --> ANALYZE[Analyze Intent]
-    ANALYZE --> EXTRACT[Extract Entities]
-    EXTRACT --> IDENTIFY[Identify Tasks]
-    IDENTIFY --> DEPEND[Determine Dependencies]
-    DEPEND --> PRIORITIZE[Prioritize Tasks]
-    PRIORITIZE --> GROUP[Group by Dependency]
-    GROUP --> ORDER[Order Execution]
-    ORDER --> PLAN[Create Execution Plan]
-    PLAN --> VALIDATE{Valid Plan?}
-    VALIDATE -->|No| IDENTIFY
-    VALIDATE -->|Yes| EXECUTE[Execute Plan]
-```
+The Supervisor Agent is the central orchestrator that coordinates all other agents. When it receives a complex query, it:
+1. Analyzes the query to understand what's needed
+2. Breaks it into tasks
+3. Assigns each task to the appropriate agent (Carbon, Benchmarking, or Net Zero)
+4. Coordinates parallel or sequential execution
+5. Aggregates results from all agents
+6. Formats a comprehensive response
 
 ---
 
@@ -615,1090 +1212,96 @@ flowchart TD
 
 ### Carbon Accounting Agent
 
-The Carbon Accounting Agent handles all carbon footprint calculations, emission tracking, and GHG protocol compliance.
-
-#### Carbon Agent Architecture
-
-```mermaid
-graph TB
-    QUERY[Carbon Query] --> SEMANTIC[Semantic Understanding]
-    SEMANTIC --> INTENT{Intent Type}
-    INTENT -->|Calculate| CALC[Calculation Flow]
-    INTENT -->|Track| TRACK[Tracking Flow]
-    INTENT -->|Report| REPORT[Reporting Flow]
-    
-    CALC --> EXTRACT[Extract Activity Data]
-    EXTRACT --> VALIDATE[Validate Data]
-    VALIDATE --> MISSING{Missing Info?}
-    MISSING -->|Yes| CLARIFY[Generate Clarification]
-    CLARIFY --> USER[Ask User]
-    USER --> EXTRACT
-    MISSING -->|No| SCOPE[Determine Scope]
-    SCOPE --> FACTOR[Get Emission Factors]
-    FACTOR --> COMPUTE[Compute Emissions]
-    COMPUTE --> VERIFY[Verify Results]
-    VERIFY --> FORMAT[Format Response]
-    
-    TRACK --> RETRIEVE[Retrieve Historical]
-    RETRIEVE --> COMPARE[Compare Periods]
-    COMPARE --> TREND[Identify Trends]
-    TREND --> FORMAT
-    
-    REPORT --> GATHER[Gather All Data]
-    GATHER --> STRUCTURE[Structure Report]
-    STRUCTURE --> FORMAT
-```
-
-#### Carbon Agent Processing Steps
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant CarbonAgent
-    participant SemanticEngine
-    participant Extractor
-    participant Validator
-    participant Calculator
-    participant Clarifier
-    
-    User->>CarbonAgent: "Calculate Scope 1 emissions"
-    CarbonAgent->>SemanticEngine: Understand Query
-    SemanticEngine->>SemanticEngine: Classify Intent
-    SemanticEngine->>SemanticEngine: Extract Entities
-    SemanticEngine-->>CarbonAgent: Intent + Entities
-    CarbonAgent->>Extractor: Extract Activity Data
-    Extractor->>Extractor: Parse Query
-    Extractor->>Extractor: Identify Activities
-    Extractor-->>CarbonAgent: Activity Data
-    CarbonAgent->>Validator: Validate Data
-    Validator->>Validator: Check Completeness
-    Validator->>Validator: Check Format
-    Validator-->>CarbonAgent: Validation Result
-    alt Data Complete
-        CarbonAgent->>Calculator: Calculate Emissions
-        Calculator->>Calculator: Get Emission Factors
-        Calculator->>Calculator: Apply GHG Protocol
-        Calculator-->>CarbonAgent: Emission Results
-    else Data Incomplete
-        CarbonAgent->>Clarifier: Generate Clarification
-        Clarifier->>Clarifier: Identify Gaps
-        Clarifier->>Clarifier: Generate Questions
-        Clarifier-->>CarbonAgent: Clarification Questions
-        CarbonAgent-->>User: Ask for Missing Info
-        User->>CarbonAgent: Provide Info
-        CarbonAgent->>Extractor: Extract Activity Data
-    end
-    CarbonAgent->>CarbonAgent: Format Response
-    CarbonAgent-->>User: Emission Calculation
-```
-
-#### Carbon Agent Data Flow
-
-```mermaid
-flowchart LR
-    INPUT[User Input] --> EXTRACT[Data Extraction]
-    EXTRACT --> ACTIVITY[Activity Data]
-    ACTIVITY --> SCOPE1[Scope 1 Activities]
-    ACTIVITY --> SCOPE2[Scope 2 Activities]
-    ACTIVITY --> SCOPE3[Scope 3 Activities]
-    
-    SCOPE1 --> FACTOR1[Emission Factors DB]
-    SCOPE2 --> FACTOR2[Emission Factors DB]
-    SCOPE3 --> FACTOR3[Emission Factors DB]
-    
-    FACTOR1 --> CALC1[Calculate Scope 1]
-    FACTOR2 --> CALC2[Calculate Scope 2]
-    FACTOR3 --> CALC3[Calculate Scope 3]
-    
-    CALC1 --> TOTAL[Total Emissions]
-    CALC2 --> TOTAL
-    CALC3 --> TOTAL
-    
-    TOTAL --> OUTPUT[Formatted Response]
-```
+The Carbon Accounting Agent handles all carbon footprint calculations, emission tracking, and GHG protocol compliance. It uses the GHG Protocol Calculator to perform accurate emissions calculations following industry standards.
 
 ### Benchmarking Agent
 
-The Benchmarking Agent compares ESG metrics against industry standards, peers, and benchmarks.
-
-#### Benchmarking Agent Architecture
-
-```mermaid
-graph TB
-    QUERY[Benchmarking Query] --> SEMANTIC[Semantic Understanding]
-    SEMANTIC --> INTENT{Intent Type}
-    INTENT -->|Compare| COMPARE[Comparison Flow]
-    INTENT -->|Rank| RANK[Ranking Flow]
-    INTENT -->|Analyze| ANALYZE[Analysis Flow]
-    
-    COMPARE --> EXTRACT[Extract Metrics]
-    EXTRACT --> NORMALIZE[Normalize Metrics]
-    NORMALIZE --> RETRIEVE[Retrieve Benchmarks]
-    RETRIEVE --> MATCH[Match to Peers]
-    MATCH --> CALCULATE[Calculate Differences]
-    CALCULATE --> VISUALIZE[Create Visualizations]
-    VISUALIZE --> FORMAT[Format Response]
-    
-    RANK --> GATHER[Gather All Metrics]
-    GATHER --> SORT[Sort by Value]
-    SORT --> POSITION[Determine Position]
-    POSITION --> FORMAT
-    
-    ANALYZE --> COLLECT[Collect Historical]
-    COLLECT --> TREND[Trend Analysis]
-    TREND --> INSIGHT[Generate Insights]
-    INSIGHT --> FORMAT
-```
-
-#### Benchmarking Agent Processing Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant BenchAgent
-    participant SemanticEngine
-    participant Extractor
-    participant Normalizer
-    participant Calculator
-    participant Comparator
-    
-    User->>BenchAgent: "Compare our carbon intensity"
-    BenchAgent->>SemanticEngine: Understand Query
-    SemanticEngine-->>BenchAgent: Intent: Compare, Metric: Carbon Intensity
-    BenchAgent->>Extractor: Extract Metric Data
-    Extractor->>Extractor: Parse Metric Name
-    Extractor->>Extractor: Extract Values
-    Extractor-->>BenchAgent: Metric Data
-    BenchAgent->>Normalizer: Normalize Metric
-    Normalizer->>Normalizer: Standardize Units
-    Normalizer->>Normalizer: Adjust for Sector
-    Normalizer-->>BenchAgent: Normalized Data
-    BenchAgent->>Calculator: Get Benchmarks
-    Calculator->>Calculator: Query Benchmark DB
-    Calculator->>Calculator: Filter by Sector
-    Calculator->>Calculator: Get Peer Data
-    Calculator-->>BenchAgent: Benchmark Data
-    BenchAgent->>Comparator: Compare Values
-    Comparator->>Comparator: Calculate Percentiles
-    Comparator->>Comparator: Find Position
-    Comparator-->>BenchAgent: Comparison Results
-    BenchAgent->>BenchAgent: Format Response
-    BenchAgent-->>User: Comparison Report
-```
+The Benchmarking Agent compares ESG metrics against industry standards, peers, and benchmarks. It uses the Benchmark Statistics Calculator to calculate percentiles, rankings, and normalized comparisons.
 
 ### Net Zero Agent
 
-The Net Zero Agent creates and validates net-zero plans, calculates pathways, and tracks progress.
+The Net Zero Agent creates and validates net-zero plans, calculates pathways, and tracks progress. It uses the SBTi Pathway Calculator to generate science-based reduction pathways.
 
-#### Net Zero Agent Architecture
-
-```mermaid
-graph TB
-    QUERY[Net Zero Query] --> SEMANTIC[Semantic Understanding]
-    SEMANTIC --> INTENT{Intent Type}
-    INTENT -->|Create Plan| PLAN[Planning Flow]
-    INTENT -->|Validate| VALIDATE[Validation Flow]
-    INTENT -->|Track| TRACK[Tracking Flow]
-    
-    PLAN --> EXTRACT[Extract Goals]
-    EXTRACT --> BASELINE[Get Baseline Emissions]
-    BASELINE --> PATHWAY[Calculate Pathway]
-    PATHWAY --> INITIATIVES[Identify Initiatives]
-    INITIATIVES --> SCORE[Score Initiatives]
-    SCORE --> PRIORITIZE[Prioritize Actions]
-    PRIORITIZE --> TIMELINE[Create Timeline]
-    TIMELINE --> FORMAT[Format Plan]
-    
-    VALIDATE --> LOAD[Load Existing Plan]
-    LOAD --> CHECK[Check Feasibility]
-    CHECK --> VERIFY[Verify Targets]
-    VERIFY --> FORMAT
-    
-    TRACK --> RETRIEVE[Retrieve Progress]
-    RETRIEVE --> COMPARE[Compare to Plan]
-    COMPARE --> ADJUST[Suggest Adjustments]
-    ADJUST --> FORMAT
-```
-
-#### Net Zero Agent Processing Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant NetZeroAgent
-    participant SemanticEngine
-    participant Extractor
-    participant Baseline
-    participant Pathway
-    participant Planner
-    
-    User->>NetZeroAgent: "Create net zero plan for 2050"
-    NetZeroAgent->>SemanticEngine: Understand Query
-    SemanticEngine-->>NetZeroAgent: Intent: Create Plan, Target: 2050
-    NetZeroAgent->>Extractor: Extract Requirements
-    Extractor->>Extractor: Parse Target Year
-    Extractor->>Extractor: Extract Constraints
-    Extractor-->>NetZeroAgent: Requirements
-    NetZeroAgent->>Baseline: Get Current Emissions
-    Baseline->>Baseline: Query Carbon Agent
-    Baseline->>Baseline: Get Historical Data
-    Baseline-->>NetZeroAgent: Baseline Emissions
-    NetZeroAgent->>Pathway: Calculate Pathway
-    Pathway->>Pathway: Apply SBTi Methodology
-    Pathway->>Pathway: Calculate Annual Targets
-    Pathway-->>NetZeroAgent: Pathway Data
-    NetZeroAgent->>Planner: Generate Initiatives
-    Planner->>Planner: Identify Opportunities
-    Planner->>Planner: Score Initiatives
-    Planner->>Planner: Create Timeline
-    Planner-->>NetZeroAgent: Net Zero Plan
-    NetZeroAgent->>NetZeroAgent: Format Response
-    NetZeroAgent-->>User: Complete Net Zero Plan
-```
 
 ---
 
 ## Agent Lifecycle
 
-### Agent Initialization
+Agents go through a lifecycle from initialization to processing queries:
 
-```mermaid
-sequenceDiagram
-    participant System
-    participant Registry
-    participant Agent
-    participant Config
-    participant LLM
-    participant Components
-    
-    System->>Registry: Register Agent
-    Registry->>Agent: Initialize
-    Agent->>Config: Load Configuration
-    Config-->>Agent: Config Data
-    Agent->>LLM: Initialize LLM Client
-    LLM-->>Agent: LLM Ready
-    Agent->>Components: Initialize Components
-    Components->>Components: Semantic Engine
-    Components->>Components: Clarification Generator
-    Components->>Components: Validator
-    Components->>Components: Learning Engine
-    Components-->>Agent: Components Ready
-    Agent->>Registry: Registration Complete
-    Registry-->>System: Agent Available
-```
-
-### Agent Execution Lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> Idle
-    Idle --> Planning: Receive Query
-    Planning --> Understanding: Analyze Query
-    Understanding --> Extracting: Extract Data
-    Extracting --> Validating: Validate Data
-    Validating --> Clarifying: Missing Data
-    Validating --> Processing: Data Complete
-    Clarifying --> Waiting: Ask User
-    Waiting --> Extracting: User Response
-    Processing --> Calculating: Perform Calculations
-    Calculating --> Formatting: Format Results
-    Formatting --> Completed: Return Response
-    Completed --> Learning: Update Learning
-    Learning --> Idle
-    Clarifying --> Error: Timeout
-    Processing --> Error: Calculation Error
-    Error --> Recovering: Attempt Recovery
-    Recovering --> Planning: Retry
-    Recovering --> Error: Recovery Failed
-    Error --> [*]
-```
-
----
+1. **Initialization**: Agents are registered and initialized with their calculators
+2. **Idle**: Waiting for queries
+3. **Processing**: Understanding query, extracting data, calculating, formatting response
+4. **Learning**: Updating from interactions to improve future responses
 
 ## Agent Communication
 
-### Inter-Agent Communication Pattern
-
-```mermaid
-graph TB
-    subgraph "Communication Methods"
-        MEMORY[Shared Memory]
-        MESSAGES[Direct Messages]
-        EVENTS[Event Bus]
-    end
-    
-    subgraph "Agents"
-        SUPERVISOR[Supervisor]
-        CARBON[Carbon Agent]
-        BENCH[Benchmarking Agent]
-        NETZERO[Net Zero Agent]
-    end
-    
-    SUPERVISOR --> MEMORY
-    CARBON --> MEMORY
-    BENCH --> MEMORY
-    NETZERO --> MEMORY
-    
-    SUPERVISOR --> MESSAGES
-    SUPERVISOR --> CARBON
-    SUPERVISOR --> BENCH
-    SUPERVISOR --> NETZERO
-    
-    CARBON --> EVENTS
-    BENCH --> EVENTS
-    NETZERO --> EVENTS
-```
-
-### Shared Memory Structure
-
-```mermaid
-graph LR
-    MEMORY[Shared Memory] --> CONTEXT[Query Context]
-    MEMORY --> RESULTS[Intermediate Results]
-    MEMORY --> PREFERENCES[User Preferences]
-    MEMORY --> HISTORY[Conversation History]
-    
-    CONTEXT --> QUERY[Original Query]
-    CONTEXT --> ENTITIES[Extracted Entities]
-    CONTEXT --> INTENT[Detected Intent]
-    
-    RESULTS --> CARBON_RES[Carbon Results]
-    RESULTS --> BENCH_RES[Benchmark Results]
-    RESULTS --> NETZERO_RES[Net Zero Results]
-```
-
----
+Agents communicate through:
+- **Shared Memory**: Stores query context and intermediate results
+- **Direct Messages**: Supervisor sends tasks to specialized agents
+- **Event Bus**: Agents can publish events for coordination
 
 ## Agent Processing Flow
 
-### Unified Semantic Understanding Flow
-
-```mermaid
-flowchart TD
-    QUERY[User Query] --> RAG[RAG Context Retrieval]
-    RAG --> CONTEXT[Enriched Context]
-    CONTEXT --> LLM[Unified LLM Call]
-    LLM --> INTENT[Intent Classification]
-    LLM --> ENTITIES[Entity Extraction]
-    LLM --> VALIDATION[Semantic Validation]
-    LLM --> GAPS[Gap Analysis]
-    LLM --> STRATEGY[Clarification Strategy]
-    
-    INTENT --> RESULT[Semantic Result]
-    ENTITIES --> RESULT
-    VALIDATION --> RESULT
-    GAPS --> RESULT
-    STRATEGY --> RESULT
-    
-    RESULT --> COMPLETE{Data Complete?}
-    COMPLETE -->|Yes| PROCESS[Process Request]
-    COMPLETE -->|No| CLARIFY[Generate Clarification]
-    CLARIFY --> USER[Ask User]
-    USER --> QUERY
-```
-
-### Intelligent Clarification Flow
-
-```mermaid
-sequenceDiagram
-    participant Agent
-    participant Clarifier
-    participant Tracker
-    participant LLM
-    participant User
-    
-    Agent->>Clarifier: Request Clarification
-    Clarifier->>Tracker: Get User Preferences
-    Tracker-->>Clarifier: Preferences
-    Clarifier->>Clarifier: Analyze Gaps
-    Clarifier->>LLM: Generate Questions
-    LLM->>LLM: Consider Context
-    LLM->>LLM: Consider History
-    LLM->>LLM: Consider Preferences
-    LLM-->>Clarifier: Clarification Questions
-    Clarifier->>Clarifier: Prioritize Questions
-    Clarifier-->>Agent: Clarification Request
-    Agent-->>User: Ask Questions
-    User->>Agent: Provide Answers
-    Agent->>Tracker: Update Preferences
-    Agent->>Agent: Continue Processing
-```
-
-### Validation Flow
-
-```mermaid
-flowchart TD
-    DATA[Extracted Data] --> VALIDATE[Semantic Validator]
-    VALIDATE --> CHECK1[Check Completeness]
-    CHECK1 --> CHECK2[Check Format]
-    CHECK2 --> CHECK3[Check Values]
-    CHECK3 --> CHECK4[Check Consistency]
-    
-    CHECK1 --> RESULT1{Valid?}
-    CHECK2 --> RESULT2{Valid?}
-    CHECK3 --> RESULT3{Valid?}
-    CHECK4 --> RESULT4{Valid?}
-    
-    RESULT1 -->|No| ERROR1[Missing Fields]
-    RESULT2 -->|No| ERROR2[Format Error]
-    RESULT3 -->|No| ERROR3[Invalid Values]
-    RESULT4 -->|No| ERROR4[Inconsistency]
-    
-    RESULT1 -->|Yes| PASS[Validation Passed]
-    RESULT2 -->|Yes| PASS
-    RESULT3 -->|Yes| PASS
-    RESULT4 -->|Yes| PASS
-    
-    ERROR1 --> CLARIFY[Request Clarification]
-    ERROR2 --> CLARIFY
-    ERROR3 --> CLARIFY
-    ERROR4 --> CLARIFY
-```
-
----
+All agents follow a similar pattern:
+1. **RAG Context Retrieval**: Find relevant information from knowledge base
+2. **Semantic Understanding**: LLM understands query intent and extracts entities
+3. **Data Validation**: Check if all required data is present
+4. **Clarification** (if needed): Ask user for missing information
+5. **Calculation**: Use specialized calculator to perform calculations
+6. **Response Formatting**: Format results with clear explanations
 
 ## Learning & Adaptation
 
-### Learning Architecture
-
-```mermaid
-graph TB
-    INTERACTION[User Interaction] --> COLLECT[Learning Data Collector]
-    COLLECT --> STORE[Store Interaction Data]
-    STORE --> ANALYZE[Pattern Analyzer]
-    ANALYZE --> PATTERNS[Identify Patterns]
-    PATTERNS --> UPDATE[Model Updater]
-    UPDATE --> IMPROVE[Improve Models]
-    IMPROVE --> DEPLOY[Deploy Updates]
-    DEPLOY --> AGENT[Agent Uses Updated Model]
-```
-
-### Learning Data Collection
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Agent
-    participant Collector
-    participant Analyzer
-    participant Updater
-    
-    User->>Agent: Query
-    Agent->>Agent: Process Query
-    Agent-->>User: Response
-    Agent->>Collector: Log Interaction
-    Collector->>Collector: Store Query
-    Collector->>Collector: Store Response
-    Collector->>Collector: Store User Feedback
-    Collector->>Analyzer: Analyze Patterns
-    Analyzer->>Analyzer: Identify Common Patterns
-    Analyzer->>Analyzer: Identify Errors
-    Analyzer-->>Updater: Pattern Insights
-    Updater->>Updater: Update Models
-    Updater->>Updater: Update Prompts
-    Updater-->>Agent: Updated Configuration
-```
-
-### Pattern Analysis Process
-
-```mermaid
-flowchart TD
-    DATA[Interaction Data] --> CLUSTER[Cluster Similar Queries]
-    CLUSTER --> EXTRACT[Extract Patterns]
-    EXTRACT --> CATEGORIZE[Categorize Patterns]
-    CATEGORIZE --> SUCCESS[Success Patterns]
-    CATEGORIZE --> FAILURE[Failure Patterns]
-    
-    SUCCESS --> REINFORCE[Reinforce Successful Patterns]
-    FAILURE --> CORRECT[Identify Corrections]
-    
-    REINFORCE --> UPDATE[Update Models]
-    CORRECT --> UPDATE
-    
-    UPDATE --> TEST[Test Updates]
-    TEST --> DEPLOY{Performance Improved?}
-    DEPLOY -->|Yes| APPLY[Apply Updates]
-    DEPLOY -->|No| REVERT[Revert Changes]
-    APPLY --> MONITOR[Monitor Performance]
-    REVERT --> DATA
-```
-
----
+The system learns from user interactions:
+- **Data Collection**: Stores queries, responses, and user feedback
+- **Pattern Analysis**: Identifies successful patterns and common errors
+- **Model Updates**: Improves prompts and configurations based on patterns
+- **Performance Monitoring**: Tracks improvements and reverts if needed
 
 ## Error Handling & Recovery
 
-### Error Handling Flow
-
-```mermaid
-flowchart TD
-    EXECUTE[Execute Task] --> TRY[Try Execution]
-    TRY --> SUCCESS{Success?}
-    SUCCESS -->|Yes| COMPLETE[Task Complete]
-    SUCCESS -->|No| CATCH[Catch Exception]
-    
-    CATCH --> CLASSIFY[Classify Error]
-    CLASSIFY --> TYPE1[LLM Error]
-    CLASSIFY --> TYPE2[Data Error]
-    CLASSIFY --> TYPE3[Calculation Error]
-    CLASSIFY --> TYPE4[Network Error]
-    
-    TYPE1 --> RECOVER1[Retry with Fallback]
-    TYPE2 --> RECOVER2[Request Clarification]
-    TYPE3 --> RECOVER3[Use Alternative Method]
-    TYPE4 --> RECOVER4[Retry with Backoff]
-    
-    RECOVER1 --> RETRY{Retry Success?}
-    RECOVER2 --> RETRY
-    RECOVER3 --> RETRY
-    RECOVER4 --> RETRY
-    
-    RETRY -->|Yes| COMPLETE
-    RETRY -->|No| ESCALATE[Escalate to Supervisor]
-    ESCALATE --> ALTERNATIVE[Try Alternative Agent]
-    ALTERNATIVE --> FALLBACK{Success?}
-    FALLBACK -->|Yes| COMPLETE
-    FALLBACK -->|No| ERROR[Return Error to User]
-```
-
-### Error Recovery Strategies
-
-```mermaid
-graph TB
-    ERROR[Error Detected] --> STRATEGY{Error Type}
-    
-    STRATEGY -->|LLM Timeout| RETRY1[Retry with Shorter Context]
-    STRATEGY -->|Invalid Data| CLARIFY1[Request Data Correction]
-    STRATEGY -->|Calculation Error| FALLBACK1[Use Alternative Formula]
-    STRATEGY -->|Network Error| BACKOFF[Exponential Backoff]
-    
-    RETRY1 --> SUCCESS1{Success?}
-    CLARIFY1 --> SUCCESS2{Success?}
-    FALLBACK1 --> SUCCESS3{Success?}
-    BACKOFF --> SUCCESS4{Success?}
-    
-    SUCCESS1 -->|No| ESCALATE1[Escalate]
-    SUCCESS2 -->|No| ESCALATE2[Escalate]
-    SUCCESS3 -->|No| ESCALATE3[Escalate]
-    SUCCESS4 -->|No| ESCALATE4[Escalate]
-    
-    ESCALATE1 --> SUPERVISOR[Supervisor Agent]
-    ESCALATE2 --> SUPERVISOR
-    ESCALATE3 --> SUPERVISOR
-    ESCALATE4 --> SUPERVISOR
-    
-    SUPERVISOR --> ALTERNATIVE[Try Alternative Approach]
-```
-
----
+Agents handle errors gracefully:
+- **Error Classification**: Categorizes errors (LLM, data, calculation, network)
+- **Recovery Strategies**: Retries, clarification requests, alternative methods
+- **Escalation**: Supervisor tries alternative approaches if recovery fails
 
 ## Performance Optimization
 
-### Agent Performance Optimization
-
-```mermaid
-graph TB
-    subgraph "Caching Strategy"
-        QUERY_CACHE[Query Result Cache]
-        CONTEXT_CACHE[Context Cache]
-        FACTOR_CACHE[Emission Factor Cache]
-    end
-    
-    subgraph "Parallel Processing"
-        PARALLEL_TASKS[Parallel Task Execution]
-        ASYNC_LLM[Async LLM Calls]
-        BATCH_PROCESS[Batch Processing]
-    end
-    
-    subgraph "Optimization Techniques"
-        EARLY_EXIT[Early Exit on Validation]
-        LAZY_LOAD[Lazy Loading]
-        STREAMING[Streaming Responses]
-    end
-    
-    QUERY_CACHE --> PARALLEL_TASKS
-    CONTEXT_CACHE --> ASYNC_LLM
-    FACTOR_CACHE --> BATCH_PROCESS
-    
-    PARALLEL_TASKS --> EARLY_EXIT
-    ASYNC_LLM --> LAZY_LOAD
-    BATCH_PROCESS --> STREAMING
-```
-
-### Response Time Optimization
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Agent
-    participant Cache
-    participant LLM
-    participant DB
-    
-    User->>Agent: Query
-    Agent->>Cache: Check Cache
-    alt Cache Hit
-        Cache-->>Agent: Cached Result
-        Agent-->>User: Fast Response
-    else Cache Miss
-        Agent->>Agent: Parallel Processing
-        par LLM Call
-            Agent->>LLM: Async LLM Request
-        and DB Query
-            Agent->>DB: Async DB Query
-        end
-        LLM-->>Agent: LLM Response
-        DB-->>Agent: DB Data
-        Agent->>Agent: Process Results
-        Agent->>Cache: Store Result
-        Agent-->>User: Response
-    end
-```
+Agents use several optimization techniques:
+- **Caching**: Query results, context, and emission factors
+- **Parallel Processing**: Multiple tasks execute simultaneously
+- **Async Operations**: Non-blocking LLM calls and database queries
+- **Early Exit**: Stops processing if validation fails early
 
 ---
 
-## Agent Capabilities Matrix
-
-### Agent Capabilities Comparison
-
-```mermaid
-graph TB
-    subgraph "Carbon Accounting Agent"
-        CA1[Calculate Emissions]
-        CA2[Track Emissions]
-        CA3[Generate Reports]
-        CA4[Scope Classification]
-    end
-    
-    subgraph "Benchmarking Agent"
-        BA1[Compare Metrics]
-        BA2[Rank Companies]
-        BA3[Analyze Trends]
-        BA4[Peer Comparison]
-    end
-    
-    subgraph "Net Zero Agent"
-        NZ1[Create Plans]
-        NZ2[Validate Plans]
-        NZ3[Track Progress]
-        NZ4[Pathway Calculation]
-    end
-    
-    subgraph "Common Capabilities"
-        CC1[Semantic Understanding]
-        CC2[Intelligent Clarification]
-        CC3[Data Validation]
-        CC4[Learning & Adaptation]
-    end
-    
-    CA1 --> CC1
-    CA2 --> CC1
-    BA1 --> CC1
-    BA2 --> CC1
-    NZ1 --> CC1
-    NZ2 --> CC1
-    
-    CA1 --> CC2
-    BA1 --> CC2
-    NZ1 --> CC2
-```
-
----
-
-## Agent Implementation Details
+## Agent Implementation Overview
 
 ### Base Agent Class
 
-All agents inherit from `BaseAgent` which provides common functionality:
+All agents inherit from `BaseAgent` which provides common functionality including status management, memory, and task history tracking.
 
-```python
-from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional
-from enum import Enum
+### Supervisor Agent
 
-class AgentStatus(str, Enum):
-    IDLE = "idle"
-    PLANNING = "planning"
-    EXECUTING = "executing"
-    VALIDATING = "validating"
-    CORRECTING = "correcting"
-    COMPLETED = "completed"
-    ERROR = "error"
-
-class BaseAgent(ABC):
-    def __init__(self, agent_name: str, agent_id: Optional[str] = None):
-        self.agent_name = agent_name
-        self.agent_id = agent_id or f"{agent_name}_{id(self)}"
-        self.status = AgentStatus.IDLE
-        self.memory = {}
-        self.task_history: List[Dict[str, Any]] = []
-    
-    @abstractmethod
-    async def plan(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Plan execution steps for a task."""
-        pass
-    
-    @abstractmethod
-    async def execute_step(self, step: Dict[str, Any], context: Dict[str, Any]) -> TaskResult:
-        """Execute a single step from the plan."""
-        pass
-    
-    @abstractmethod
-    async def validate(self, result: TaskResult) -> bool:
-        """Validate the result of task execution."""
-        pass
-```
-
-### Supervisor Agent Implementation
-
-The Supervisor Agent coordinates multiple agents:
-
-```python
-class SupervisorAgent:
-    def __init__(self):
-        self.task_planner = TaskPlanner()
-        self.execution_coordinator = ExecutionCoordinator()
-        self.result_aggregator = ResultAggregator()
-        self.agent_registry = get_agent_registry()
-    
-    async def process_query(self, query: str, context: Optional[str] = None) -> Dict[str, Any]:
-        # Step 1: Plan tasks
-        execution_plan = await self.task_planner.plan(query, context)
-        
-        # Step 2: Execute tasks
-        results = await self.execution_coordinator.execute_plan(execution_plan)
-        
-        # Step 3: Aggregate results
-        aggregated = self.result_aggregator.aggregate(results)
-        
-        return aggregated
-```
-
-### Carbon Agent Implementation
-
-Example of how Carbon Agent processes queries:
-
-```python
-class CarbonAccountingAgent:
-    async def process_query(self, query: str) -> Dict[str, Any]:
-        # 1. Semantic Understanding
-        semantic_result = await self.unified_semantic_engine.understand(query)
-        
-        # 2. Extract Activity Data
-        activity_data = await self.extraction_handler.extract(query)
-        
-        # 3. Validate Data
-        validation_result = await self.semantic_validator.validate(activity_data)
-        
-        if not validation_result.is_complete:
-            # 4. Generate Clarification
-            clarification = await self.clarification_orchestrator.generate(
-                gaps=validation_result.gaps
-            )
-            return {"type": "clarification", "questions": clarification}
-        
-        # 5. Calculate Emissions
-        emissions = await self.calculation_orchestrator.calculate(activity_data)
-        
-        # 6. Format Response
-        return {
-            "type": "result",
-            "emissions": emissions,
-            "explanation": self._generate_explanation(emissions)
-        }
-```
+The Supervisor Agent coordinates multiple agents through:
+- **Task Planner**: Analyzes queries and breaks them into tasks
+- **Execution Coordinator**: Manages parallel or sequential task execution
+- **Result Aggregator**: Combines results from all agents into a unified response
 
 ### Agent Registry
 
-Agents are registered in a central registry:
+Agents are registered in a central registry that tracks:
+- Agent capabilities
+- Health status
+- Availability for task assignment
 
-```python
-class AgentRegistry:
-    def __init__(self):
-        self.agents: Dict[str, AgentInfo] = {}
-    
-    def register(self, agent: BaseAgent, capabilities: List[str]):
-        self.agents[agent.agent_id] = AgentInfo(
-            agent=agent,
-            capabilities=capabilities,
-            status=AgentHealth.HEALTHY
-        )
-    
-    def find_agent(self, required_capabilities: List[str]) -> Optional[BaseAgent]:
-        for agent_info in self.agents.values():
-            if all(cap in agent_info.capabilities for cap in required_capabilities):
-                return agent_info.agent
-        return None
-```
+### Agent Communication
 
-## Agent Configuration
-
-### Environment Variables for Agents
-
-```bash
-# Enable/Disable Agents
-ENABLE_SUPERVISOR_AGENT=true
-ENABLE_CARBON_AGENT=true
-ENABLE_BENCHMARKING_AGENT=true
-ENABLE_NETZERO_AGENT=true
-
-# Agent Features
-USE_UNIFIED_SEMANTIC_ENGINE=false
-USE_INTELLIGENT_CLARIFICATION=true
-USE_SEMANTIC_VALIDATION=true
-ENABLE_AGENT_LEARNING=true
-
-# Agent Timeouts
-AGENT_TIMEOUT_SECONDS=300
-AGENT_RETRY_ATTEMPTS=3
-```
-
-### Agent Initialization
-
-Agents are initialized on application startup:
-
-```python
-# In main.py or agent initialization module
-def initialize_agents():
-    # Register Carbon Agent
-    carbon_agent = CarbonAccountingAgent()
-    agent_registry.register(
-        carbon_agent,
-        capabilities=["carbon_calculation", "emission_tracking", "scope_classification"]
-    )
-    
-    # Register Benchmarking Agent
-    bench_agent = BenchmarkingAgent()
-    agent_registry.register(
-        bench_agent,
-        capabilities=["benchmarking", "peer_comparison", "metric_analysis"]
-    )
-    
-    # Register Net Zero Agent
-    netzero_agent = NetZeroPlanner()
-    agent_registry.register(
-        netzero_agent,
-        capabilities=["net_zero_planning", "pathway_calculation", "initiative_scoring"]
-    )
-```
-
-## Agent Communication Protocols
-
-### Shared Memory Structure
-
-```python
-class SharedMemory:
-    def __init__(self):
-        self.context: Dict[str, Any] = {}
-        self.results: Dict[str, Any] = {}
-        self.preferences: Dict[str, Any] = {}
-        self.history: List[Dict[str, Any]] = []
-    
-    def write(self, key: str, value: Any, agent_id: str):
-        """Write to shared memory with agent context."""
-        self.context[f"{agent_id}:{key}"] = value
-    
-    def read(self, key: str, agent_id: Optional[str] = None) -> Any:
-        """Read from shared memory."""
-        if agent_id:
-            return self.context.get(f"{agent_id}:{key}")
-        return self.context.get(key)
-```
-
-### Inter-Agent Messaging
-
-```python
-class AgentMessage:
-    def __init__(self, from_agent: str, to_agent: str, message_type: str, payload: Dict):
-        self.from_agent = from_agent
-        self.to_agent = to_agent
-        self.message_type = message_type
-        self.payload = payload
-        self.timestamp = datetime.now(timezone.utc)
-
-# Example: Carbon Agent requesting data from Net Zero Agent
-message = AgentMessage(
-    from_agent="carbon_agent",
-    to_agent="netzero_agent",
-    message_type="data_request",
-    payload={"request": "baseline_emissions", "year": 2024}
-)
-```
-
-## Agent Testing
-
-### Unit Testing Agents
-
-```python
-import pytest
-from ml.agents.carbon_accounting.carbon_agent import CarbonAccountingAgent
-
-@pytest.mark.asyncio
-async def test_carbon_agent_calculation():
-    agent = CarbonAccountingAgent()
-    result = await agent.process_query(
-        "Calculate Scope 1 emissions for 1000 liters of diesel"
-    )
-    assert result["type"] == "result"
-    assert "emissions" in result
-    assert result["emissions"]["total"] > 0
-```
-
-### Integration Testing
-
-```python
-@pytest.mark.asyncio
-async def test_supervisor_coordination():
-    supervisor = SupervisorAgent()
-    result = await supervisor.process_query(
-        "Calculate our carbon footprint and compare it to industry average"
-    )
-    assert "carbon_result" in result
-    assert "benchmark_result" in result
-```
-
-## Agent Performance Metrics
-
-### Key Performance Indicators
-
-1. **Response Time**: Average time to process a query
-2. **Accuracy**: Percentage of correct responses
-3. **Clarification Rate**: Frequency of clarification requests
-4. **Error Rate**: Percentage of failed queries
-5. **User Satisfaction**: User feedback scores
-
-### Monitoring Agent Performance
-
-```python
-class AgentMetrics:
-    def __init__(self, agent_id: str):
-        self.agent_id = agent_id
-        self.query_count = 0
-        self.success_count = 0
-        self.error_count = 0
-        self.avg_response_time = 0.0
-        self.clarification_count = 0
-    
-    def record_query(self, response_time: float, success: bool, clarification: bool):
-        self.query_count += 1
-        if success:
-            self.success_count += 1
-        else:
-            self.error_count += 1
-        if clarification:
-            self.clarification_count += 1
-        
-        # Update average response time
-        self.avg_response_time = (
-            (self.avg_response_time * (self.query_count - 1) + response_time) 
-            / self.query_count
-        )
-```
-
-## Agent Best Practices
-
-### 1. Error Handling
-
-Always wrap agent operations in try-except blocks:
-
-```python
-async def process_query(self, query: str) -> Dict[str, Any]:
-    try:
-        result = await self._process(query)
-        return result
-    except LLMError as e:
-        return await self._handle_llm_error(e)
-    except ValidationError as e:
-        return await self._handle_validation_error(e)
-    except Exception as e:
-        logger.error(f"Unexpected error in {self.agent_name}: {e}")
-        return {"error": "An unexpected error occurred"}
-```
-
-### 2. Logging
-
-Use structured logging for agent operations:
-
-```python
-import logging
-
-logger = logging.getLogger(f"agent.{self.agent_name}")
-
-async def process_query(self, query: str):
-    logger.info(f"Processing query: {query[:100]}")
-    # ... processing ...
-    logger.info(f"Query processed successfully in {duration}s")
-```
-
-### 3. Caching
-
-Cache expensive operations:
-
-```python
-from functools import lru_cache
-
-@lru_cache(maxsize=100)
-def get_emission_factor(activity_type: str, region: str) -> float:
-    # Expensive database lookup
-    return db.get_emission_factor(activity_type, region)
-```
-
-### 4. Async Operations
-
-Use async/await for I/O operations:
-
-```python
-async def fetch_data(self, source: str) -> Dict:
-    # Use async HTTP client
-    async with aiohttp.ClientSession() as session:
-        async with session.get(source) as response:
-            return await response.json()
-```
-
-## Conclusion
-
-The agent system in Fitsol ESG provides:
-
-1. **Intelligent Coordination**: Supervisor agent orchestrates complex multi-agent tasks
-2. **Specialized Expertise**: Each agent is optimized for its domain
-3. **Unified Understanding**: Shared semantic understanding infrastructure
-4. **Adaptive Learning**: Continuous improvement from user interactions
-5. **Robust Error Handling**: Multiple recovery strategies for reliability
-6. **Performance Optimization**: Caching, parallel processing, and async operations
-7. **Extensibility**: Easy to add new agents following the base architecture
-
-The architecture enables the system to handle complex ESG queries efficiently while maintaining high accuracy and user satisfaction through intelligent clarification and continuous learning.
-
-### Adding New Agents
-
-To add a new agent:
-
-1. Create agent class inheriting from `BaseAgent`
-2. Implement required abstract methods
-3. Register agent in `AgentRegistry`
-4. Add agent-specific configuration
-5. Write unit and integration tests
-6. Update documentation
-
-Example:
-
-```python
-class NewDomainAgent(BaseAgent):
-    def __init__(self):
-        super().__init__("New Domain Agent")
-        # Initialize agent-specific components
-    
-    async def plan(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
-        # Implement planning logic
-        pass
-    
-    async def execute_step(self, step: Dict[str, Any], context: Dict[str, Any]) -> TaskResult:
-        # Implement execution logic
-        pass
-    
-    async def validate(self, result: TaskResult) -> bool:
-        # Implement validation logic
-        pass
-```
+Agents communicate through:
+- **Shared Memory**: Stores query context and intermediate results
+- **Direct Messages**: Supervisor sends tasks to specialized agents
+- **Event Bus**: Agents can publish events for coordination
 
 ---
 
